@@ -1,4 +1,4 @@
-import pylab as pl
+import pylab as pyl
 import numpy as np
 
 #this returns the result of a normal temporal filter (double exponential)
@@ -12,17 +12,8 @@ def tempFilter(f_max,dt,tau1,tau2,p):
         vals += [tempFilterFct(t,tau1,tau2,p)]
     return vals
 
-'''def setTempFilterVals(f_max):
-    for f in range(f_max):
-        #add a new entry to the time list of the pixel i,j
-        temp_on = 0
-        temp_off = 0
-        #assign another counting variable 
-        map()
-        for k in range(f):
-            #later on, if we need to summarize over the already partly summed fields
-            #-> pixels4d must be replaced by on/off filed output + be careful about minus!
-            temp_on += float(temp_px4d[f-k])*temp_filter_on[k] 
-            temp_off += float(temp_px4d[f-k])*temp_filter_off[k]
-        temp_filter_vals_on[i][j][f] = temp_on
-        temp_filter_vals_off[i][j][f] = temp_off'''
+def spatialFilter(x,x0,sigma,alpha,beta):
+    return np.exp((x-x0)*(x-x0)/(2*sigma*sigma))-alpha*np.exp((x-x0)*(x-x0)/(2*beta*beta*sigma*sigma))
+
+def poissonRate(pot):
+    return pot*0.5
