@@ -133,6 +133,8 @@ for i in range(rec_height):
 #calculate the difference between surround and center fields --> needs to be done? and safe to file
 temp_filter_subtr = np.asarray(np.subtract(temp_filter_vals_on, temp_filter_vals_off), dtype=int)
 
+#poisson_rates=poissonRate(temp_filter_subtr)
+
 tf_data = open('data/temp_filter_subtr.data','w+')
 np.save(tf_data, temp_filter_subtr)
 tf_data.close()
