@@ -16,4 +16,4 @@ def spatialFilter(x,x0,sigma,alpha,beta):
     return np.exp((x-x0)*(x-x0)/(2*sigma*sigma))-alpha*np.exp((x-x0)*(x-x0)/(2*beta*beta*sigma*sigma))
 
 def poissonRate(pot):
-    return pot*0.5
+    return pot/200000*300
