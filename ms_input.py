@@ -15,10 +15,10 @@ from microsaccades_functions import *
 
 #-------------------------------------------------------------------------------------------LOAD-VIDEO
 #load video
-cap = cv2.VideoCapture('test1.avi')
+cap = cv2.VideoCapture('test2.avi')
 #just to be sure
 while not cap.isOpened():
-    cap = cv2.VideoCapture('test1.avi')
+    cap = cv2.VideoCapture('test2.avi')
     cv2.waitKey(1000)
     print "Wait for the header"
     
@@ -64,22 +64,26 @@ ffile.close
 #now comes the part of the temporal filters
 #later: define list with all different tau1, tau2 and p, for the moment one is enough (for on/off-center) 
 
-off_tau1 = .05
-off_tau2 = .1
-off_p = .05
 
-on_tau1 = .2
-on_tau2 = .1
-on_p = .05
+#problem here is now, that both create the same output and therefore nothing is produced
+off_tau1 = .5 #.05 --> what is dt in Garrett's code? 0.1ms or 1ms? depending on that, this is the 
+off_tau2 = 1.5 #.1     right value
+off_p = .8 #.05
+
+on_tau1 = .5 #.2
+on_tau2 = 1.5 #.1
+on_p = .8 #.05
 
 #set values for the spatial filters for the pixel in \mum(?)
 alpha = .1
-beta = 0.5
-sigma = .1
-px_dist= .1
+beta = 5 #CSR
+sigma = 1 # parasolic/midget cell ratio * sigma (=1)
+px_dist= 1
+px_rec_ratio = 3 #pixel to receptor ratio
+
 #subsequent values
 diag_px_dist = np.sqrt(2)*px_dist
-receptor_dist = 3*px_dist #for the moment, later maybe hexagonal?
+receptor_dist = px_rec_ratio*px_dist #for the moment, later maybe hexagonal?
 max_spat_filter_val = spatialFilter(0,0,sigma,alpha,beta)
 next_spat_filter_val = spatialFilter(0,px_dist,sigma,alpha,beta)
 diag_spat_filter_val = spatialFilter(0,diag_px_dist,sigma,alpha,beta)
@@ -88,50 +92,52 @@ diag_spat_filter_val = spatialFilter(0,diag_px_dist,sigma,alpha,beta)
 #dt = 1000*dt
 
 #we actually need to calculate the values of each temporal filter just once
-temp_filter_off = tempFilter(100,dt,off_tau1,off_tau2,off_p)#10 instead of frame_number --> TEST!
-temp_filter_on = tempFilter(100,dt,on_tau1,on_tau2,on_p)#mayber 120, compare to paper!      
+temp_filter_off = tempFilter(200,dt,off_tau1,off_tau2,off_p)#10 instead of frame_number --> TEST!
+temp_filter_on = tempFilter(200,dt,on_tau1,on_tau2,on_p)#mayber 120, compare to paper --> 200 in Garrett's code!      
 
-rec_height = int(height/3)
-rec_width = int(width/3)
+#pyl.plot(temp_filter_on)
+#pyl.show()
+
+rec_height = int(height/px_rec_ratio)
+rec_width = int(width/px_rec_ratio)
 
 print rec_height,rec_width
 
 rec_pixels4d = np.zeros(shape=(rec_height,rec_width,frame_number))
 
 for f in range(frame_number):
-    for i in range(rec_height):
-        i_f = i*3
-        for j in range(rec_width):
-            j_f = j*3
+    for i in range(rec_height):         #range(1,rec_height-1): #this only, if px=rec
+        i_f = i*px_rec_ratio
+        for j in range(rec_width):      # range(1,rec_width-1): #this only, if px=rec
+            j_f = j*px_rec_ratio
+            #needs to get better? width depending on sigma? and temp_filter_on/off only makes sense, if you take a look at center and surround field separately, not the already done calculation, as it is here --> change this part (incl spatial filter function, if you want to take two different filters for center and surround field!
             rec_pixels4d[i][j][f] = max_spat_filter_val*float(pixels4d[i_f][j_f][f]) + next_spat_filter_val*(float(pixels4d[i_f-1][j_f][f])+float(pixels4d[i_f+1][j_f][f])+float(pixels4d[i_f][j_f-1][f])+float(pixels4d[i_f][j_f+1][f])) + diag_spat_filter_val*(float(pixels4d[i_f-1][j_f-1][f])+float(pixels4d[i_f-1][j_f+1][f])+float(pixels4d[i_f+1][j_f-1][f])+float(pixels4d[i_f+1][j_f+1][f]))
 
 #output frame for the filter values at the end
-temp_filter_vals_off = np.zeros(shape=(rec_height,rec_width,frame_number))
 temp_filter_vals_on  = np.zeros(shape=(rec_height,rec_width,frame_number))
+#temp_filter_vals_off = np.zeros(shape=(rec_height,rec_width,frame_number))
 
  
 #now apply the temporal filters: output are two lists for on/off fields
 for i in range(rec_height):
-    #if i%20 == 0:
     print i
     for j in range(rec_width):
         temp_rec_px4d = []
         pop = temp_rec_px4d.pop
-        #map(frameCalc,range(0,frame_number))
         for f in range(frame_number):
             temp_rec_px4d.insert(0, float(rec_pixels4d[i][j][f]))
-            if f > 100:
+            if f > 200:
                 pop()
             #add a new entry to the time list of the pixel i,j
             temp_filter_vals_on[i][j][f] = sum(imap(lambda x,y: x*y, temp_rec_px4d, temp_filter_on))
-            temp_filter_vals_off[i][j][f] = sum(imap(lambda x,y: x*y, temp_rec_px4d, temp_filter_off))
+            #temp_filter_vals_off[i][j][f] = sum(imap(lambda x,y: x*y, temp_rec_px4d, temp_filter_off))
 
 #pyl.plot(temp_filter_vals_off[10][10])
 #pyl.plot(temp_filter_vals_on[10][10])
 #pyl.show()
 
 #calculate the difference between surround and center fields --> needs to be done? and safe to file
-temp_filter_subtr = np.asarray(np.subtract(temp_filter_vals_on, temp_filter_vals_off), dtype=int)
+temp_filter_subtr = np.asarray(temp_filter_vals_on)#np.subtract(temp_filter_vals_on, temp_filter_vals_off), dtype=int)
 
 #poisson_rates=poissonRate(temp_filter_subtr)
 
