@@ -44,7 +44,7 @@ while(cap.isOpened()):
         #store 2D array in pixels4d 
         for i in range(height):
             for j in range(width):
-                pixels4d[i][j]+=[gray[i,j]]
+                pixels4d[i][j]+=[float(gray[i,j])]
         if frame_number == 200:
             break
         cv2.imshow('frame',gray)
@@ -78,22 +78,21 @@ on_p = .8 #.05
 alpha = .1
 beta = 5 #CSR
 sigma = 1 # parasolic/midget cell ratio * sigma (=1)
-px_dist= 1
-px_rec_ratio = 3 #pixel to receptor ratio
+px_rec_ratio = 3. #pixel to receptor ratio, needed for receptor distance/number
+px_dist= 1./px_rec_ratio #set rec distance to one
+
+#spatial filter values determined
+spat_filter_break_radius = 4 #filter radius in px 
 
 #subsequent values
-diag_px_dist = np.sqrt(2)*px_dist
 receptor_dist = px_rec_ratio*px_dist #for the moment, later maybe hexagonal?
-max_spat_filter_val = spatialFilter(0,0,sigma,alpha,beta)
-next_spat_filter_val = spatialFilter(0,px_dist,sigma,alpha,beta)
-diag_spat_filter_val = spatialFilter(0,diag_px_dist,sigma,alpha,beta)
 
-#to get bigger numbers, probably change later on 
-#dt = 1000*dt
+spat_filter_values = [[spatialFilter(np.sqrt(i*px_dist*i*px_dist+j*px_dist*j*px_dist),0,sigma,alpha,beta) for j in range(-spat_filter_break_radius,spat_filter_break_radius+1)] for i in range(-spat_filter_break_radius,spat_filter_break_radius+1)] #change also, if hexagonal
+
 
 #we actually need to calculate the values of each temporal filter just once
-temp_filter_off = tempFilter(200,dt,off_tau1,off_tau2,off_p)#10 instead of frame_number --> TEST!
-temp_filter_on = tempFilter(200,dt,on_tau1,on_tau2,on_p)#mayber 120, compare to paper --> 200 in Garrett's code!      
+#temp_filter_off = tempFilter(200,dt,off_tau1,off_tau2,off_p)
+temp_filter_on = tempFilter(200,dt,on_tau1,on_tau2,on_p) #mayber 120, compare to paper --> 200 in Garrett's code!      
 
 #pyl.plot(temp_filter_on)
 #pyl.show()
@@ -105,13 +104,14 @@ print rec_height,rec_width
 
 rec_pixels4d = np.zeros(shape=(rec_height,rec_width,frame_number))
 
+#apply the spatial filter
 for f in range(frame_number):
-    for i in range(rec_height):         #range(1,rec_height-1): #this only, if px=rec
-        i_f = i*px_rec_ratio
-        for j in range(rec_width):      # range(1,rec_width-1): #this only, if px=rec
-            j_f = j*px_rec_ratio
+    for i in range(1,rec_height-1):         #range(1,rec_height-1): #this only, if px=rec
+        i_f = i*int(px_rec_ratio)+1
+        for j in range(1,rec_width-1):      # range(1,rec_width-1): #this only, if px=rec
+            j_f = j*int(px_rec_ratio)+1
             #needs to get better? width depending on sigma? and temp_filter_on/off only makes sense, if you take a look at center and surround field separately, not the already done calculation, as it is here --> change this part (incl spatial filter function, if you want to take two different filters for center and surround field!
-            rec_pixels4d[i][j][f] = max_spat_filter_val*float(pixels4d[i_f][j_f][f]) + next_spat_filter_val*(float(pixels4d[i_f-1][j_f][f])+float(pixels4d[i_f+1][j_f][f])+float(pixels4d[i_f][j_f-1][f])+float(pixels4d[i_f][j_f+1][f])) + diag_spat_filter_val*(float(pixels4d[i_f-1][j_f-1][f])+float(pixels4d[i_f-1][j_f+1][f])+float(pixels4d[i_f+1][j_f-1][f])+float(pixels4d[i_f+1][j_f+1][f]))
+            rec_pixels4d[i][j][f] = pixels4d[i_f][j_f][f] #imap(lambda x,y: x*y, pixels4d[i_f-4:i_f+4][j_f-4:j_f+4][f], spat_filter_values)
 
 #output frame for the filter values at the end
 temp_filter_vals_on  = np.zeros(shape=(rec_height,rec_width,frame_number))

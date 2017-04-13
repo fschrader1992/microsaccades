@@ -13,10 +13,10 @@ def tempFilter(f_max,dt,tau1,tau2,p):
     return vals
 
 def spatialFilter(x,x0,sigma,alpha,beta):
-    return (np.exp((x-x0)*(x-x0)/(2*sigma*sigma))-alpha*np.exp((x-x0)*(x-x0)/(beta*beta*sigma*sigma)))/sigma
+    return (np.exp(-(x-x0)*(x-x0)/(2*sigma*sigma))-alpha*np.exp(-(x-x0)*(x-x0)/(2*beta*beta*sigma*sigma)))/sigma
 #above is Garrett's version
 #def spatialFilter(x,x0,sigma,alpha,beta):
-#    return np.exp((x-x0)*(x-x0)/(2*sigma*sigma))-alpha*np.exp((x-x0)*(x-x0)/(2*beta*beta*sigma*sigma)))
+#    return np.exp((x-x0)*(x-x0)/(2*sigma*sigma))-alpha*np.exp((x-x0)*(x-x0)/(2*beta*beta*sigma*sigma))
 
 def poissonRate(pot):
     return abs(pot/4000.)
