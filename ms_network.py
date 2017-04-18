@@ -112,7 +112,7 @@ par_motion_down_conndict = {'connection_type' : 'convergent','mask' : {'rectangu
 out_conndict = {'connection_type' : 'convergent'}
 
 tp.ConnectLayers(midgets,parasolic,mi_par_on_conndict)
-tp.ConnectLayers(midgets,parasolic,mi_par_off_conndict)
+#tp.ConnectLayers(midgets,parasolic,mi_par_off_conndict)
 tp.ConnectLayers(midgets,reichardt_left,r_left_conndict)
 tp.ConnectLayers(midgets,reichardt_right,r_right_conndict)
 tp.ConnectLayers(midgets,reichardt_up,r_up_conndict)

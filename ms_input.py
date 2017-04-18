@@ -15,10 +15,10 @@ from microsaccades_functions import *
 
 #-------------------------------------------------------------------------------------------LOAD-VIDEO
 #load video
-cap = cv2.VideoCapture('test2.avi')
+cap = cv2.VideoCapture('/video/opposite.mp4')
 #just to be sure
 while not cap.isOpened():
-    cap = cv2.VideoCapture('test2.avi')
+    cap = cv2.VideoCapture('video/opposite.mp4')
     cv2.waitKey(1000)
     print "Wait for the header"
     
@@ -82,7 +82,7 @@ px_rec_ratio = 3. #pixel to receptor ratio, needed for receptor distance/number
 px_dist= 1./px_rec_ratio #set rec distance to one
 
 #spatial filter values determined
-spat_filter_break_radius = 4 #filter radius in px 
+spat_filter_break_radius = 6 #filter radius in px 
 
 #subsequent values
 receptor_dist = px_rec_ratio*px_dist #for the moment, later maybe hexagonal?
@@ -106,12 +106,16 @@ rec_pixels4d = np.zeros(shape=(rec_height,rec_width,frame_number))
 
 #apply the spatial filter
 for f in range(frame_number):
-    for i in range(1,rec_height-1):         #range(1,rec_height-1): #this only, if px=rec
+    for i in range(2,rec_height-2):         #range(1,rec_height-1): #this only, if px=rec
         i_f = i*int(px_rec_ratio)+1
-        for j in range(1,rec_width-1):      # range(1,rec_width-1): #this only, if px=rec
+        for j in range(2,rec_width-2):      # range(1,rec_width-1): #this only, if px=rec
             j_f = j*int(px_rec_ratio)+1
             #needs to get better? width depending on sigma? and temp_filter_on/off only makes sense, if you take a look at center and surround field separately, not the already done calculation, as it is here --> change this part (incl spatial filter function, if you want to take two different filters for center and surround field!
-            rec_pixels4d[i][j][f] = pixels4d[i_f][j_f][f] #imap(lambda x,y: x*y, pixels4d[i_f-4:i_f+4][j_f-4:j_f+4][f], spat_filter_values)
+            px_val=0
+            for q in range(-spat_filter_break_radius,spat_filter_break_radius+1):
+                for p in range(-spat_filter_break_radius,spat_filter_break_radius+1):
+                   px_val += pixels4d[i_f+q][j_f+p][f]*spat_filter_values[q+spat_filter_break_radius][p+spat_filter_break_radius]
+            rec_pixels4d[i][j][f] = px_val
 
 #output frame for the filter values at the end
 temp_filter_vals_on  = np.zeros(shape=(rec_height,rec_width,frame_number))
@@ -129,7 +133,7 @@ for i in range(rec_height):
             if f > 200:
                 pop()
             #add a new entry to the time list of the pixel i,j
-            temp_filter_vals_on[i][j][f] = sum(imap(lambda x,y: x*y, temp_rec_px4d, temp_filter_on))
+            temp_filter_vals_on[i][j][f] = float(rec_pixels4d[i][j][f])#sum(imap(lambda x,y: x*y, temp_rec_px4d, temp_filter_on))
             #temp_filter_vals_off[i][j][f] = sum(imap(lambda x,y: x*y, temp_rec_px4d, temp_filter_off))
 
 #pyl.plot(temp_filter_vals_off[10][10])
@@ -139,7 +143,17 @@ for i in range(rec_height):
 #calculate the difference between surround and center fields --> needs to be done? and safe to file
 temp_filter_subtr = np.asarray(temp_filter_vals_on)#np.subtract(temp_filter_vals_on, temp_filter_vals_off), dtype=int)
 
-#poisson_rates=poissonRate(temp_filter_subtr)
+
+'''
+midget_rates=poissonRate(temp_filter_subtr)
+
+
+#-------------------------------------------------------------------------------------------PARASOLIC-RATES
+
+#the spatial filters: use receptor difference + 4*sigma (or pixel distance? probably not
+par_spat_filter_values = [[spatialFilter(np.sqrt(i*rec_dist*i*rec_dist+j*rec_dist*j*rec_dist),0,4*sigma,alpha,beta) for j in range(-spat_filter_break_radius,spat_filter_break_radius+1)] for i in range(-spat_filter_break_radius,spat_filter_break_radius+1)] #change also, if hexagonal
+'''
+
 
 tf_data = open('data/temp_filter_subtr.data','w+')
 np.save(tf_data, temp_filter_subtr)
@@ -149,7 +163,7 @@ fig = plt.figure(figsize=(6, 3.2))
 
 ax = fig.add_subplot(111)
 ax.set_title('colorMap')
-plt.imshow(temp_filter_subtr[:,:,100])
+plt.imshow(temp_filter_subtr[:,:,50])
 ax.set_aspect('equal')
 
 cax = fig.add_axes([0.12, 0.1, 0.78, 0.8])
