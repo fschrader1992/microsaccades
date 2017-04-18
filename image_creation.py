@@ -25,7 +25,7 @@ def rotate_point(center, point, angle):
 '''
 -here should also be a function randomly moving the image and then creating all the frames in a folder
 -for moving images in one direction: get input rate and then reset offset + loop
-
+'''
 
 
 #------------------------------------------------------------------------
