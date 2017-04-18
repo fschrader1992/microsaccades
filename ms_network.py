@@ -17,12 +17,17 @@ syn_weight = 0.1
 
 #----------------------------------------------------------------------------INPUT-RATES-FROM-MS_INPUT
 #here needs to be a part that transfers potentials into poisson rates
-tf_file = open('data/temp_filter_subtr.data','r+')
-input_data = np.load(tf_file)   
+m_file = open('data/midget_values.data','r+')
+m_data = np.load(m_file)   
 
-midget_rates=poissonRate(input_data)
+p_file = open('data/parasolic_values.data','r+')
+p_data = np.load(p_file)  
 
-'''
+midget_rates=poissonRate(m_data)
+parasolic_rates=poissonRate(p_data)
+
+print midget_rates
+
 #to check for maximum spike rates in order to adopt conversion of film input
 maxs = []
 for i in range(len(midget_rates)):
@@ -30,7 +35,7 @@ for i in range(len(midget_rates)):
        maxs.append(max(midget_rates[i][j]))
 print max(maxs)
 '''
-
+'''
 #-----------------------------------------------------------------------------------------NETWORK-PART
 #---------------------------------------------------------------------------INITIALIZE-POISSON-NEURONS
 
@@ -59,7 +64,7 @@ print rows, cols
 #retink that model
 nest.SetDefaults('iaf_psc_alpha',{'I_e' : 374.0})
 midgets = tp.CreateLayer({'rows': rows, 'columns': cols, 'extent': [float(cols),float(rows)], 'center' : [float(rows)/2,float(cols)/2], 'elements': 'poisson_generator', 'edge_wrap': True})
-parasolic = tp.CreateLayer({'rows': int(float(rows)/4), 'columns': int(float(cols)/4), 'extent': [float(cols),float(rows)], 'center' : [float(rows)/2,float(cols)/2], 'elements': 'iaf_psc_alpha', 'edge_wrap': True})
+parasolic = tp.CreateLayer({'rows': int(float(rows)/4), 'columns': int(float(cols)/4), 'extent': [float(cols),float(rows)], 'center' : [float(rows)/2,float(cols)/2], 'elements': 'poisson_generator', 'edge_wrap': True})
 
 reichardt_left = tp.CreateLayer({'rows': rows, 'columns': cols, 'extent': [float(cols),float(rows)], 'center' : [float(rows)/2,float(cols)/2], 'elements': 'iaf_psc_alpha', 'edge_wrap': True})
 reichardt_right = tp.CreateLayer({'rows': rows, 'columns': cols, 'extent': [float(cols),float(rows)], 'center' : [float(rows)/2,float(cols)/2], 'elements': 'iaf_psc_alpha', 'edge_wrap': True})
@@ -85,9 +90,6 @@ out = tp.CreateLayer({'rows': int(float(rows)/4), 'columns': int(float(cols)/4),
 
 #-----------------------------------------------------------------------------------CREATE-CONNECTIONS
 
-mi_par_on_conndict = {'connection_type' : 'convergent','mask' : {'circular' : {'radius' : 4.}}, 'weights' : {'gaussian' : {'p_center' : 1., 'sigma' : 2.}}}
-mi_par_off_conndict = {'connection_type' : 'convergent','mask' : {'circular' : {'radius' : 4.}}, 'weights' : {'gaussian' : {'p_center' : -0.5, 'sigma' : 2.}}}
-
 r_left_conndict = {'connection_type' : 'convergent','mask' : {'rectangular' : {'lower_left' : [0.,-1.], 'upper_right' : [0.1,0.1]}}, 'delays' : {'linear' : {'c' : .1, 'a' : .02}}}
 r_right_conndict = {'connection_type' : 'convergent','mask' : {'rectangular' : {'lower_left' : [0.,0.], 'upper_right' : [0.1,1.]}}, 'delays' : {'linear' : {'c' : .1, 'a' : .02}}}
 r_up_conndict = {'connection_type' : 'convergent','mask' : {'rectangular' : {'lower_left' : [0.,0.], 'upper_right' : [1.,0.1]}}, 'delays' : {'linear' : {'c' : .1, 'a' : .02}}}
@@ -111,8 +113,6 @@ par_motion_down_conndict = {'connection_type' : 'convergent','mask' : {'rectangu
 
 out_conndict = {'connection_type' : 'convergent'}
 
-tp.ConnectLayers(midgets,parasolic,mi_par_on_conndict)
-#tp.ConnectLayers(midgets,parasolic,mi_par_off_conndict)
 tp.ConnectLayers(midgets,reichardt_left,r_left_conndict)
 tp.ConnectLayers(midgets,reichardt_right,r_right_conndict)
 tp.ConnectLayers(midgets,reichardt_up,r_up_conndict)
@@ -129,20 +129,21 @@ tp.ConnectLayers(parasolic,motion_left,par_motion_left_conndict)
 tp.ConnectLayers(parasolic,motion_right,par_motion_right_conndict)
 tp.ConnectLayers(parasolic,motion_up,par_motion_up_conndict)
 tp.ConnectLayers(parasolic,motion_down,par_motion_down_conndict)
-#tp.ConnectLayers(midgets,out,out_conndict)
-tp.ConnectLayers(motion_left,out,out_conndict)
+tp.ConnectLayers(midgets,out,out_conndict)
+#tp.ConnectLayers(motion_left,out,out_conndict)
 
 #-------------------------------------------------------------------------------------------SIMULATION
-for f in range(10):#len(midget_rates[0][0])):
+for f in range(3):#len(midget_rates[0][0])):
     #reset rates
     for row in range(rows):
         for col in range(cols):
             nest.SetStatus(tp.GetElement(midgets,[row,col]), {'rate': midget_rates[row][col][f]})
+            nest.SetStatus(tp.GetElement(parasolic,[int(float(row)/4.),int(float(col)/4.)]), {'rate': parasolic_rates[int(float(row)/4.)][int(float(col)/4.)][f]})
     #run simulation
     print f
-    nest.Simulate(40)#int(1/framerate))
+    nest.Simulate(10)#int(1/framerate))
 
-s = tp.GetElement(out,[0,0])
+s = tp.GetElement(out,[0,30])
 #mult = tp.GetElement(out_multi,[0,0])
 
 dSD = nest.GetStatus(s,keys="events")[0]

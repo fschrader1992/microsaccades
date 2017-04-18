@@ -32,13 +32,13 @@ def rotate_point(center, point, angle):
 
 stripe_width = 15
 gap = 15
-offset = 6
+offset = 2
 image_size = 300
 
 canvas = np.zeros((image_size, image_size))
-current_col = 0
+current_col = offset
 while current_col < image_size:
-    if current_col + stripe_width + gap <= image_size-1:
+    if current_col + stripe_width + gap  <= image_size-1:
         canvas[:, current_col:current_col+stripe_width] = 1
         current_col += stripe_width + gap
     elif current_col + stripe_width <= image_size-1:
