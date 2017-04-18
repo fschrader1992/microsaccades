@@ -10,6 +10,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 import cv2
+import datetime
 from itertools import imap
 from microsaccades_functions import *
 
@@ -45,7 +46,7 @@ while(cap.isOpened()):
         for i in range(height):
             for j in range(width):
                 pixels4d[i][j]+=[float(gray[i,j])]
-        if frame_number == 200:
+        if frame_number == 60:
             break
         cv2.imshow('frame',gray)
         if cv2.waitKey(1) & 0xFF == ord('q'):
@@ -79,7 +80,8 @@ alpha = .1
 beta = 5 #CSR
 sigma = 1 # parasolic/midget cell ratio * sigma (=1)
 px_rec_ratio = 3. #pixel to receptor ratio, needed for receptor distance/number
-px_dist= 1./px_rec_ratio #set rec distance to one
+px_dist= 1./px_rec_ratio #set rec distance to one, if changes, also change for parasolic spatial filter
+par_m_ratio = 2
 
 #spatial filter values determined
 spat_filter_break_radius = 6 #filter radius in px 
@@ -94,21 +96,19 @@ spat_filter_values = [[spatialFilter(np.sqrt(i*px_dist*i*px_dist+j*px_dist*j*px_
 #temp_filter_off = tempFilter(200,dt,off_tau1,off_tau2,off_p)
 temp_filter_on = tempFilter(200,dt,on_tau1,on_tau2,on_p) #mayber 120, compare to paper --> 200 in Garrett's code!      
 
-#pyl.plot(temp_filter_on)
-#pyl.show()
 
 rec_height = int(height/px_rec_ratio)
 rec_width = int(width/px_rec_ratio)
 
 print rec_height,rec_width
 
-rec_pixels4d = np.zeros(shape=(rec_height,rec_width,frame_number))
+rec_pixels4d = np.zeros(shape=(rec_height-2,rec_width-2,frame_number))
 
-#apply the spatial filter
+#apply the spatial filter 
 for f in range(frame_number):
-    for i in range(2,rec_height-2):         #range(1,rec_height-1): #this only, if px=rec
+    for i in range(rec_height-2):         #range(1,rec_height-1): #this only, if px=rec 4=2*2
         i_f = i*int(px_rec_ratio)+1
-        for j in range(2,rec_width-2):      # range(1,rec_width-1): #this only, if px=rec
+        for j in range(rec_width-2):      # range(1,rec_width-1): #this only, if px=rec
             j_f = j*int(px_rec_ratio)+1
             #needs to get better? width depending on sigma? and temp_filter_on/off only makes sense, if you take a look at center and surround field separately, not the already done calculation, as it is here --> change this part (incl spatial filter function, if you want to take two different filters for center and surround field!
             px_val=0
@@ -123,9 +123,9 @@ temp_filter_vals_on  = np.zeros(shape=(rec_height,rec_width,frame_number))
 
  
 #now apply the temporal filters: output are two lists for on/off fields
-for i in range(rec_height):
+for i in range(rec_height-2):
     print i
-    for j in range(rec_width):
+    for j in range(rec_width-2):
         temp_rec_px4d = []
         pop = temp_rec_px4d.pop
         for f in range(frame_number):
@@ -133,43 +133,81 @@ for i in range(rec_height):
             if f > 200:
                 pop()
             #add a new entry to the time list of the pixel i,j
-            temp_filter_vals_on[i][j][f] = float(rec_pixels4d[i][j][f])#sum(imap(lambda x,y: x*y, temp_rec_px4d, temp_filter_on))
+            temp_filter_vals_on[i][j][f] = sum(imap(lambda x,y: x*y, temp_rec_px4d, temp_filter_on))
             #temp_filter_vals_off[i][j][f] = sum(imap(lambda x,y: x*y, temp_rec_px4d, temp_filter_off))
 
-#pyl.plot(temp_filter_vals_off[10][10])
-#pyl.plot(temp_filter_vals_on[10][10])
-#pyl.show()
 
 #calculate the difference between surround and center fields --> needs to be done? and safe to file
-temp_filter_subtr = np.asarray(temp_filter_vals_on)#np.subtract(temp_filter_vals_on, temp_filter_vals_off), dtype=int)
+m_output = np.asarray(temp_filter_vals_on)#np.subtract(temp_filter_vals_on, temp_filter_vals_off), dtype=int)
 
 
-'''
-midget_rates=poissonRate(temp_filter_subtr)
+#-------------------------------------------------------------------------------------PARASOLIC-OUTPUT
+
+par_values = [[[0. for f in range(frame_number)] for j in range(int(rec_width/par_m_ratio)-2*par_m_ratio)] for i in range(int(rec_height/par_m_ratio)-2*par_m_ratio)]
+
+#the spatial filters: use receptor difference + 4*sigma + shift to (.5,.5) in middle of gridcell formed by midgets
+par_spat_filter_values = [[spatialFilter(np.sqrt((float(i)-.5)*(float(i)-.5)+(float(j)-.5)*(float(j)-.5)),0,par_m_ratio*sigma,alpha,beta) for j in range(-4,4)] for i in range(-4,4)] #change also, if hexagonal + since receptor distance equals 1
+
+#apply the spatial filter
+for f in range(frame_number):
+    for i in range(int(rec_height/par_m_ratio)-2*par_m_ratio):
+        i_f = par_m_ratio*i+2*par_m_ratio
+        for j in range(int(rec_width/par_m_ratio)-2*par_m_ratio):      
+            j_f = par_m_ratio*j+2*par_m_ratio
+            m_val=0
+            for q in range(-4,4): #range(-spat_filter_break_radius,spat_filter_break_radius):
+                for p in range(-4,4): #range(-spat_filter_break_radius,spat_filter_break_radius):
+                   m_val += temp_filter_vals_on[i_f+q][j_f+p][f]*par_spat_filter_values[q+4][p+4]
+            par_values[i][j][f] = m_val
+
+p_output = np.asarray(par_values)
 
 
-#-------------------------------------------------------------------------------------------PARASOLIC-RATES
+#------------------------------------------------------------------------------------------SAVE-OUTPUT
+m_data = open('data/midget_values.data','w+')
+np.save(m_data, m_output)
+m_data.close()
 
-#the spatial filters: use receptor difference + 4*sigma (or pixel distance? probably not
-par_spat_filter_values = [[spatialFilter(np.sqrt(i*rec_dist*i*rec_dist+j*rec_dist*j*rec_dist),0,4*sigma,alpha,beta) for j in range(-spat_filter_break_radius,spat_filter_break_radius+1)] for i in range(-spat_filter_break_radius,spat_filter_break_radius+1)] #change also, if hexagonal
-'''
+p_data = open('data/parasolic_values.data','w+')
+np.save(p_data, p_output)
+p_data.close()
 
+#--------------------------------------------------------------------------------------PLOT-SOME-STUFF
 
-tf_data = open('data/temp_filter_subtr.data','w+')
-np.save(tf_data, temp_filter_subtr)
-tf_data.close()
+fig = plt.figure(1)
 
-fig = plt.figure(figsize=(6, 3.2))
-
-ax = fig.add_subplot(111)
-ax.set_title('colorMap')
-plt.imshow(temp_filter_subtr[:,:,50])
+ax = fig.add_subplot(221)
+ax.set_title('midget output')
+plt.imshow(m_output[:,:,50], interpolation='nearest')
 ax.set_aspect('equal')
+plt.axis('off')
 
-cax = fig.add_axes([0.12, 0.1, 0.78, 0.8])
+cax = fig.add_axes([0.,0.,1.,1.])
 cax.get_xaxis().set_visible(False)
 cax.get_yaxis().set_visible(False)
 cax.patch.set_alpha(0)
 cax.set_frame_on(False)
-plt.colorbar(orientation='vertical')
+#plt.colorbar(orientation='vertical')
+
+ax = fig.add_subplot(223)
+ax.set_title('parasolic output')
+plt.imshow(p_output[:,:,50], interpolation='nearest')
+ax.set_aspect('equal')
+plt.axis('off')
+
+cax = fig.add_axes([0.,0.,1.,1.])
+cax.get_xaxis().set_visible(False)
+cax.get_yaxis().set_visible(False)
+cax.patch.set_alpha(0)
+cax.set_frame_on(False)
+
+
+now = datetime.datetime.now()
+
+out= 'img/'+ str(now.year) + '_' + str(now.month) + '_' + str(now.day) + '/output_mp_test_' + str(now.hour) + '_' + str(now.minute) + '_' + str(now.second) + '.pdf'
+plt.savefig(out)
+
+out= 'img/output_mp_test.pdf'
+plt.savefig(out)
+
 plt.show()

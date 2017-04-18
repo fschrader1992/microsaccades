@@ -32,7 +32,7 @@ def rotate_point(center, point, angle):
 
 stripe_width = 15
 gap = 15
-offset = 15
+offset = 6
 image_size = 300
 
 canvas = np.zeros((image_size, image_size))
@@ -55,6 +55,6 @@ ax = plt.Axes(fig, [0., 0., 1., 1.])
 ax.set_axis_off()
 fig.add_axes(ax)
 ax.imshow(canvas, cmap='gray')
-plt.savefig("test2.png",  dpi = 300)
+plt.savefig("video/img_input/opposite2/test001.png",  dpi = 300)
 
 plt.show()
