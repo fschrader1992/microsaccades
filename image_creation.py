@@ -10,10 +10,12 @@ stripe_width = 15
 gap = 15
 offset = -15
 image_size = 600
-degrees = 10
+degrees = 180
 
 #for normal distributed microsaccades
 sigma = 1
+
+file_location = "video/img_input/opposite"
 
 
 film_length = int(framerate)*(stripe_width+gap)
@@ -56,10 +58,10 @@ for f in range(film_length):
     ax.set_axis_off()
     fig.add_axes(ax)
     ax.imshow(canvas, cmap='gray')
-    plt.savefig("video/img_input/opposite3/first"+str(f+1).zfill(3)+".png",  dpi = 300)
+    plt.savefig(file_location + "/first"+str(f+1).zfill(3)+".png",  dpi = 300)
     
 
-    img = cv2.imread("video/img_input/opposite3/first"+str(f+1).zfill(3)+".png",0)
+    img = cv2.imread(file_location + "/first"+str(f+1).zfill(3)+".png",0)
     rows,cols = img.shape
 
     #-----------------------------------------------------------------------------------------ROTATION
@@ -72,10 +74,11 @@ for f in range(film_length):
     fig.set_size_inches(1, 1)
     
     plt.imshow(rotFig,cmap='gray')
-    plt.savefig("video/img_input/opposite3/second"+str(f+1).zfill(3)+".png",  dpi = 300)
-    '''
+    plt.savefig(file_location + "/second"+str(f+1).zfill(3)+".png",  dpi = 300)
+    
     #------------------------------------------------------------------------------NORMAL-DISPLACEMENT
     
+    '''
     transl = np.float32([[1,0,tl_x[f]],[0,1,tl_y[f]]])
     tlFig = cv2.warpAffine(rotFig,transl,(cols,rows))
     
@@ -84,5 +87,5 @@ for f in range(film_length):
     fig.set_size_inches(1, 1)
     
     plt.imshow(tlFig,cmap='gray')
-    plt.savefig("video/img_input/opposite3/second"+str(f+1).zfill(3)+".png",  dpi = 300)
+    plt.savefig(file_location + "/second"+str(f+1).zfill(3)+".png",  dpi = 300)
     '''

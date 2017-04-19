@@ -16,10 +16,10 @@ from microsaccades_functions import *
 
 #-------------------------------------------------------------------------------------------LOAD-VIDEO
 #load video
-cap = cv2.VideoCapture('/video/opposite.mp4')
+cap = cv2.VideoCapture('/video/opposite_1fr0deg.mp4')
 #just to be sure
 while not cap.isOpened():
-    cap = cv2.VideoCapture('video/opposite.mp4')
+    cap = cv2.VideoCapture('video/opposite_1fr0deg.mp4')
     cv2.waitKey(1000)
     print "Wait for the header"
     
@@ -46,7 +46,7 @@ while(cap.isOpened()):
         for i in range(height):
             for j in range(width):
                 pixels4d[i][j]+=[float(gray[i,j])]
-        if frame_number == 60:
+        if frame_number == 2:
             break
         cv2.imshow('frame',gray)
         if cv2.waitKey(1) & 0xFF == ord('q'):
@@ -57,9 +57,9 @@ while(cap.isOpened()):
 cap.release()
 cv2.destroyAllWindows()
 
-ffile =open('pixels4d.data','w+')
-ffile.write(str(pixels4d[9][9]))
-ffile.close
+#ffile =open('pixels4d.data','w+')
+#ffile.write(str(pixels4d[9][9]))
+#ffile.close
 
 #-----------------------------------------------------------------------------------------TIME-FILTERS
 #now comes the part of the temporal filters
@@ -87,35 +87,68 @@ par_m_ratio = 2
 spat_filter_break_radius = 6 #filter radius in px 
 
 #subsequent values
-receptor_dist = px_rec_ratio*px_dist #for the moment, later maybe hexagonal?
-
-spat_filter_values = [[spatialFilter(np.sqrt(i*px_dist*i*px_dist+j*px_dist*j*px_dist),0,sigma,alpha,beta) for j in range(-spat_filter_break_radius,spat_filter_break_radius+1)] for i in range(-spat_filter_break_radius,spat_filter_break_radius+1)] #change also, if hexagonal
-
+receptor_dist = 1. #px_rec_ratio*px_dist #for the moment, later maybe hexagonal?
 
 #we actually need to calculate the values of each temporal filter just once
-#temp_filter_off = tempFilter(200,dt,off_tau1,off_tau2,off_p)
 temp_filter_on = tempFilter(200,dt,on_tau1,on_tau2,on_p) #mayber 120, compare to paper --> 200 in Garrett's code!      
 
 
-rec_height = int(height/px_rec_ratio)
-rec_width = int(width/px_rec_ratio)
+rec_height = int(np.floor((height-spat_filter_break_radius)/(1.732*px_rec_ratio))) #2*cos(30deg)
+rec_width = int(np.floor((width-spat_filter_break_radius)/(3*px_rec_ratio))*4) #3 is difference between hexagons where pattern repeatesand 4 is the number of cells in that distance
 
 print rec_height,rec_width
 
-rec_pixels4d = np.zeros(shape=(rec_height-2,rec_width-2,frame_number))
+rec_pixels4d = np.zeros(shape=(rec_height-1,rec_width,frame_number))
+
+#grid=[[0],[0]]
 
 #apply the spatial filter 
 for f in range(frame_number):
-    for i in range(rec_height-2):         #range(1,rec_height-1): #this only, if px=rec 4=2*2
-        i_f = i*int(px_rec_ratio)+1
-        for j in range(rec_width-2):      # range(1,rec_width-1): #this only, if px=rec
-            j_f = j*int(px_rec_ratio)+1
+            
+    for j in range(rec_width):      # range(1,rec_width-1): #this only, if px=rec
+        
+        pos_j = np.floor(float(j)/4)*px_rec_ratio + 2 
+        if j%4 == 1 :
+            pos_j += .5
+        elif j%4 == 2 :
+            pos_j += 1.5
+        elif j%4 == 3 :
+            pos_j += 2
+            
+        j_low = int(pos_j*px_rec_ratio-spat_filter_break_radius+1) # -> all j with dist < r
+        j_ceil = j_low + int(2*spat_filter_break_radius)
+        
+        #if f %10 == 0:
+        #    print j, j_low, j_ceil
+            
+        for i in range(rec_height-1):       #because of hexagonal 
+                
+            pos_i = 1.732*(i+1)         #2*cos(30deg)
+            if j%4 == 0 or j%4 == 3:
+                pos_i += 0.866      #cos(30deg)
+                
+            i_low = int(pos_i*px_rec_ratio-spat_filter_break_radius+1) # -> all j with dist < r
+            i_ceil = i_low + int(2*spat_filter_break_radius)
+            
+            #if f ==0:
+            #    grid[0] += [pos_j]
+            #    grid[1] += [pos_i]
+            
+            #if f%10 == 0 and j == 58:
+            #   print i, i_low, i_ceil
             #needs to get better? width depending on sigma? and temp_filter_on/off only makes sense, if you take a look at center and surround field separately, not the already done calculation, as it is here --> change this part (incl spatial filter function, if you want to take two different filters for center and surround field!
+            
             px_val=0
-            for q in range(-spat_filter_break_radius,spat_filter_break_radius+1):
-                for p in range(-spat_filter_break_radius,spat_filter_break_radius+1):
-                   px_val += pixels4d[i_f+q][j_f+p][f]*spat_filter_values[q+spat_filter_break_radius][p+spat_filter_break_radius]
+            
+            for p in range(j_low,j_ceil):
+                for q in range(i_low,i_ceil):
+                    dist = np.sqrt((pos_j - p*px_dist)*(pos_j - p*px_dist)+(pos_i - q*px_dist)*(pos_i - q*px_dist))
+                    #make a real circle
+                    if dist < spat_filter_break_radius: 
+                        px_val += pixels4d[q][p][f]*spatialFilter(dist,0,sigma,alpha,beta)
+                    
             rec_pixels4d[i][j][f] = px_val
+
 
 #output frame for the filter values at the end
 temp_filter_vals_on  = np.zeros(shape=(rec_height,rec_width,frame_number))
@@ -133,7 +166,7 @@ for i in range(rec_height-2):
             if f > 200:
                 pop()
             #add a new entry to the time list of the pixel i,j
-            temp_filter_vals_on[i][j][f] = sum(imap(lambda x,y: x*y, temp_rec_px4d, temp_filter_on))
+            temp_filter_vals_on[i][j][f] = float(rec_pixels4d[i][j][f]) #sum(imap(lambda x,y: x*y, temp_rec_px4d, temp_filter_on))
             #temp_filter_vals_off[i][j][f] = sum(imap(lambda x,y: x*y, temp_rec_px4d, temp_filter_off))
 
 
@@ -178,7 +211,7 @@ fig = plt.figure(1)
 
 ax = fig.add_subplot(221)
 ax.set_title('midget output')
-plt.imshow(m_output[:,:,50], interpolation='nearest')
+plt.imshow(m_output[:,:,1], interpolation='nearest')
 ax.set_aspect('equal')
 plt.axis('off')
 
@@ -191,7 +224,7 @@ cax.set_frame_on(False)
 
 ax = fig.add_subplot(223)
 ax.set_title('parasolic output')
-plt.imshow(p_output[:,:,50], interpolation='nearest')
+plt.imshow(p_output[:,:,1], interpolation='nearest')
 ax.set_aspect('equal')
 plt.axis('off')
 
