@@ -1,4 +1,6 @@
 #to copy files multiple times last one is step size
 tee <test001.png>/dev/null test0{3..99..2}.png
+#copy with additional nr in front?
+
 #make mp4 video from that
 ffmpeg -f image2 -r 24 -i test%3d.png -vcodec mpeg4 -y ../../opposite.mp4
