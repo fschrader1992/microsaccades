@@ -15,11 +15,13 @@ import itertools
 from microsaccades_functions import *
 
 #-------------------------------------------------------------------------------------------LOAD-VIDEO
+now = datetime.datetime.now()
+
 #load video
-cap = cv2.VideoCapture('/video/test1.avi')#opposite_1fr0deg.mp4')
+cap = cv2.VideoCapture('/video/opposite_1fr0deg.mp4')
 #just to be sure
 while not cap.isOpened():
-    cap = cv2.VideoCapture('video/test1.avi')#opposite_1fr0deg.mp4')
+    cap = cv2.VideoCapture('video/opposite_1fr0deg.mp4')
     cv2.waitKey(1000)
     print "Wait for the header"
     
@@ -179,33 +181,13 @@ m_output = np.asarray(temp_filter_vals_on)#np.subtract(temp_filter_vals_on, temp
 
 #-------------------------------------------------------------------------------------PARASOLIC-OUTPUT
 
-par_values = [[[0. for f in range(frame_number)] for j in range(int(rec_width/4)-8)] for i in range(int(rec_height/2)-4)]
-              
-#range(int(rec_height/par_m_ratio)-2*par_m_ratio)]
+par_values = [[[0. for f in range(frame_number)] for j in range(int(rec_width/4)-1)] for i in range(int(rec_height/2)-2)]
 
-#the spatial filters: use receptor difference + 4*sigma + shift to (.5,.5) in middle of gridcell formed by midgets
-par_spat_filter_values = [[spatialFilter(np.sqrt((float(i)-.5)*(float(i)-.5)+(float(j)-.5)*(float(j)-.5)),0,par_m_ratio*sigma,alpha,beta) for j in range(-4,4)] for i in range(-4,4)] #change also, if hexagonal + since receptor distance equals 1
-
-'''
-#apply the spatial filter
-for f in range(frame_number):
-    for i in range(int(rec_height/par_m_ratio)-2*par_m_ratio):
-        i_f = par_m_ratio*i+2*par_m_ratio
-        for j in range(int(rec_width/par_m_ratio)-2*par_m_ratio):      
-            j_f = par_m_ratio*j+2*par_m_ratio
-            m_val=0
-            for q in range(-4,4): #range(-spat_filter_break_radius,spat_filter_break_radius):
-                for p in range(-4,4): #range(-spat_filter_break_radius,spat_filter_break_radius):
-                   m_val += temp_filter_vals_on[i_f+q][j_f+p][f]*par_spat_filter_values[q+4][p+4]
-            par_values[i][j][f] = m_val
-''' 
-
-
-def spatFilterParasolPx(mult_list,mean,kl,r_break,sigma,alpha,beta):
+def spatFilterParasolPx(mult_list,center,kl,r_break,sigma,alpha,beta):
     add_val = 0
     mult_val = mult_list[kl[0]][kl[1]]
     kl_val = midget_grid[kl[0]][kl[1]]
-    dist = np.sqrt(sum(itertools.imap(lambda x,y: (x-y)*(x-y), mean, kl_val)))
+    dist = np.sqrt(sum(itertools.imap(lambda x,y: (x-y)*(x-y), center, kl_val)))
     #make it a real circle
     if dist <= r_break:
         add_val = mult_val*spatialFilter(dist,0,sigma,alpha,beta)
@@ -215,7 +197,7 @@ def spatFilterParasolPx(mult_list,mean,kl,r_break,sigma,alpha,beta):
 def getSpatFilterParasol(ij):
     
     
-    pos = [midget_grid[2*ij[0]][4*ij[1]+1][1] + .866, midget_grid[2*ij[0]][4*ij[1]+1][0] + .5]
+    pos = [midget_grid[2*ij[0]][4*ij[1]+1][0] + .866, midget_grid[2*ij[0]][4*ij[1]+1][1] + .5]
     #print 'ij' + str(ij)
 
     i_low = int(2*ij[0]-par_m_ratio*spat_filter_break_radius/px_rec_ratio+1) # -> all j with dist < r
@@ -225,8 +207,8 @@ def getSpatFilterParasol(ij):
     
     #print j_low,j_ceil
     if f==0:
-        pgrid[0] += [pos[0]]
-        pgrid[1] += [pos[1]]
+        pgrid[0] += [pos[1]]
+        pgrid[1] += [pos[0]]
     
     par_values[ij[0]][ij[1]][f] = sum(itertools.imap(lambda x: spatFilterParasolPx(midgets3d,pos,x,spat_filter_break_radius,par_m_ratio*sigma,alpha,beta), itertools.product(range(i_low,i_ceil),range(j_low,j_ceil))))
     
@@ -238,12 +220,16 @@ def getSpatFilterParasol(ij):
 #apply the spatial filter 
 for f in range(frame_number):
     print f
+    #here is some altering fct needed, that shifts the whole thing nicely
     midgets3d = [[mi[f] for mi in midgs] for midgs in temp_filter_vals_on]      
-    map(lambda x: getSpatFilterParasol(x), itertools.product(range(2,int(rec_height/2)-4),range(2,int(rec_width/4)-8)))
+    map(lambda x: getSpatFilterParasol(x), itertools.product(range(int(rec_height/2)-2),range(int(rec_width/4)-1)))
 
 p_output = np.asarray(par_values)
 
 plt.plot(pgrid[0],pgrid[1],'ro')
+out= 'img/'+ str(now.year) + '_' + str(now.month) + '_' + str(now.day) + '/grid_mp_' + str(now.hour) + '_' + str(now.minute) + '_' + str(now.second) + '.pdf'
+plt.savefig(out)
+plt.savefig('img/grid_mp.pdf')
 plt.show()
 
 #------------------------------------------------------------------------------------------SAVE-OUTPUT
@@ -283,9 +269,6 @@ cax.get_xaxis().set_visible(False)
 cax.get_yaxis().set_visible(False)
 cax.patch.set_alpha(0)
 cax.set_frame_on(False)
-
-
-now = datetime.datetime.now()
 
 out= 'img/'+ str(now.year) + '_' + str(now.month) + '_' + str(now.day) + '/output_mp_test_' + str(now.hour) + '_' + str(now.minute) + '_' + str(now.second) + '.pdf'
 plt.savefig(out)
