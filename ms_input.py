@@ -16,7 +16,7 @@ from microsaccades_functions import *
 
 #-------------------------------------------------------------------------------------------LOAD-VIDEO
 now = datetime.datetime.now()
-'''
+
 #load video
 cap = cv2.VideoCapture('/video/opposite_1fr0deg.mp4')
 #just to be sure
@@ -306,16 +306,7 @@ np.save(p_data, p_output)
 p_data.close()
 
 #--------------------------------------------------------------------------------------PLOT-SOME-STUFF
-'''
 
-m_file = open('data/midget_values.data','r+')
-m_output = np.load(m_file)   
-
-p_file = open('data/parasolic_values.data','r+')
-p_output = np.load(p_file)  
-
-m_file.close()
-p_file.close()
 
 fig = plt.figure(1)
 
