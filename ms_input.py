@@ -83,7 +83,7 @@ beta = 5 #CSR
 sigma = 1 # parasolic/midget cell ratio * sigma (=1)
 px_rec_ratio = 3. #pixel to receptor ratio, needed for receptor distance/number
 px_dist= 1./px_rec_ratio #set rec distance to one, if changes, also change for parasolic spatial filter
-par_m_ratio = 2
+par_m_ratio = 4
 
 #spatial filter values determined
 spat_filter_break_radius = 6 #filter radius in px 
@@ -151,7 +151,11 @@ for f in range(frame_number):
     pixels3d = [[item[f] for item in pxst] for pxst in pixels4d]      
     map(lambda x: getSpatFilter(x), itertools.product(range(rec_height-2),range(rec_width-2)))
      
-plt.plot(grid[0],grid[1],'bo')
+#pyl.figure()
+#pyl.subplot(121, aspect='equal')
+#pyl.plot(pgrid[0],pgrid[1],'ro')
+
+#plt.plot(grid[0],grid[1],'bo')
 #plt.show()
 
 #output frame for the filter values at the end
@@ -181,7 +185,7 @@ m_output = np.asarray(temp_filter_vals_on)#np.subtract(temp_filter_vals_on, temp
 
 #-------------------------------------------------------------------------------------PARASOLIC-OUTPUT
 
-par_values = [[[0. for f in range(frame_number)] for j in range(int(rec_width/4)-1)] for i in range(int(rec_height/2)-2)]
+par_values = [[[0. for f in range(frame_number)] for j in range(int(rec_width/8)-1)] for i in range(int(2*rec_height/3))]
 
 def spatFilterParasolPx(mult_list,center,kl,r_break,sigma,alpha,beta):
     add_val = 0
@@ -196,20 +200,56 @@ def spatFilterParasolPx(mult_list,center,kl,r_break,sigma,alpha,beta):
 
 def getSpatFilterParasol(ij):
     
+    #ij[0] height, ij[1] width    
     
-    pos = [midget_grid[2*ij[0]][4*ij[1]+1][0] + .866, midget_grid[2*ij[0]][4*ij[1]+1][1] + .5]
+    x_disp = 8*ij[1]+1
+    y_disp = int(ij[0]/2)*3+ij[0]%2 #together +2*ij[0]
+    
+    pos = [midget_grid[y_disp][x_disp][0] + .866, midget_grid[y_disp][x_disp][1] + .5]
     #print 'ij' + str(ij)
+    
+    #if ij[0]%4 == 0:
+    #pos[0] += 0.866  #cos(30deg)
+    if ij[0]%4 == 1 or ij[0]%4 == 2:
+        pos[1] += 3
+        x_disp += 4
 
-    i_low = int(2*ij[0]-par_m_ratio*spat_filter_break_radius/px_rec_ratio+1) # -> all j with dist < r
-    i_ceil = i_low + int(2*par_m_ratio*spat_filter_break_radius/px_rec_ratio)    
-    j_low = int(4*ij[1]+1-par_m_ratio*spat_filter_break_radius/px_rec_ratio) # -> all j with dist < r
-    j_ceil = j_low + int(2*par_m_ratio*spat_filter_break_radius/px_rec_ratio)
+    move = 2*spat_filter_break_radius/px_rec_ratio
+    i_low = int(y_disp-move) # -> all j with dist < r
+    i_ceil = int(y_disp+move)  
+    j_low = int(x_disp-2.*move) # -> all j with dist < r
+    j_ceil = int(x_disp+2.*move)
     
     #print j_low,j_ceil
     if f==0:
         pgrid[0] += [pos[1]]
         pgrid[1] += [pos[0]]
-    
+        if ij[0] == 5 and ij[1] == 5:
+            print pos
+            print x_disp, y_disp
+            print j_low,j_ceil
+            print i_low,i_ceil
+            print midget_grid[i_low][j_low][0], midget_grid[i_low][j_low][1]
+            print midget_grid[i_ceil][j_ceil][0], midget_grid[i_ceil][j_ceil][1]
+            center = pos
+            s_filter = [[0],[0]]
+            dis =[]
+            for i in range(i_low,i_ceil):
+                for j in range(j_low,j_ceil):
+                    mult_val = midgets3d[i][j]
+                    kl_val = midget_grid[i][j]
+                    dist = np.sqrt(sum(itertools.imap(lambda x,y: (x-y)*(x-y), center, kl_val)))
+                    #make it a real circle
+                    dis += [dist]
+                    if dist <= 2*spat_filter_break_radius/px_rec_ratio:
+                        s_filter[0] += [midget_grid[i][j][0]]
+                        s_filter[1] += [midget_grid[i][j][1]]
+            del s_filter[1][0]
+            del s_filter[0][0]
+            #plt.plot(s_filter[1],s_filter[0],'go')
+            print(2.*spat_filter_break_radius)
+            plt.plot(dis)
+            plt.show()
     par_values[ij[0]][ij[1]][f] = sum(itertools.imap(lambda x: spatFilterParasolPx(midgets3d,pos,x,spat_filter_break_radius,par_m_ratio*sigma,alpha,beta), itertools.product(range(i_low,i_ceil),range(j_low,j_ceil))))
     
     #par_m_ratio*sigma
@@ -221,17 +261,22 @@ def getSpatFilterParasol(ij):
 for f in range(frame_number):
     print f
     #here is some altering fct needed, that shifts the whole thing nicely
-    midgets3d = [[mi[f] for mi in midgs] for midgs in temp_filter_vals_on]      
-    map(lambda x: getSpatFilterParasol(x), itertools.product(range(int(rec_height/2)-2),range(int(rec_width/4)-1)))
+    midgets3d = [[mi[f] for mi in midgs] for midgs in temp_filter_vals_on]   
+    map(lambda x: getSpatFilterParasol(x), itertools.product(range(int(rec_height/2)-1), range(int(rec_width/16)-1)))
 
 p_output = np.asarray(par_values)
 
+#pyl.figure()
+#pyl.subplot(121, aspect='equal')
+#pyl.plot(pgrid[0],pgrid[1],'ro')
+#pyl.show()
+'''
 plt.plot(pgrid[0],pgrid[1],'ro')
 out= 'img/'+ str(now.year) + '_' + str(now.month) + '_' + str(now.day) + '/grid_mp_' + str(now.hour) + '_' + str(now.minute) + '_' + str(now.second) + '.pdf'
 plt.savefig(out)
 plt.savefig('img/grid_mp.pdf')
 plt.show()
-
+'''
 #------------------------------------------------------------------------------------------SAVE-OUTPUT
 m_data = open('data/midget_values.data','w+')
 np.save(m_data, m_output)
