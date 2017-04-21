@@ -16,7 +16,7 @@ from microsaccades_functions import *
 
 #-------------------------------------------------------------------------------------------LOAD-VIDEO
 now = datetime.datetime.now()
-
+'''
 #load video
 cap = cv2.VideoCapture('/video/opposite_1fr0deg.mp4')
 #just to be sure
@@ -48,7 +48,7 @@ while(cap.isOpened()):
         for i in range(height):
             for j in range(width):
                 pixels4d[i][j]+=[float(gray[i,j])]
-        if frame_number == 2:
+        if frame_number == 220:
             break
         cv2.imshow('frame',gray)
         if cv2.waitKey(1) & 0xFF == ord('q'):
@@ -198,7 +198,7 @@ for i in range(rec_height):
             if f > 200:
                 pop()
             #add a new entry to the time list of the pixel i,j
-            temp_filter_vals_on[i][j][f] = rec_pixels4d[i][j][f]#sum(itertools.imap(lambda x,y: x*y, temp_rec_px4d, temp_filter_on))
+            temp_filter_vals_on[i][j][f] = sum(itertools.imap(lambda x,y: x*y, temp_rec_px4d, temp_filter_on))
             #temp_filter_vals_off[i][j][f] = sum(itertools.imap(lambda x,y: x*y, temp_rec_px4d, temp_filter_off))
 
 
@@ -270,56 +270,6 @@ def getSpatFilterParasol(ij):
     if f==0:
         pgrid[0] += [y_disp]
         pgrid[1] += [x_disp]
-        if ij[0] == 5 and ij[1] == 5:
-            '''
-            print pos
-            print x_disp, y_disp
-            print j_low,j_ceil
-            print i_low,i_ceil
-            print midget_grid[i_low][j_low][0], midget_grid[i_low][j_low][1]
-            print midget_grid[i_ceil][j_ceil][0], midget_grid[i_ceil][j_ceil][1]
-            '''
-            filter_vals = [[0. for j in range(j_low,j_ceil)] for i in range(i_low,i_ceil)]
-            center = pos
-            s_filter = [[0],[0]]
-            dis =[]
-            for i in range(i_low,i_ceil):
-                for j in range(j_low,j_ceil):
-                    mult_val = midgets3d[i][j]
-                    kl_val = midget_grid[i][j]
-                    dist = np.sqrt(sum(itertools.imap(lambda x,y: (x-y)*(x-y), center, kl_val)))
-                    #make it a real circle
-                    dis += [dist]
-                    if dist <= par_m_ratio*spat_filter_break_radius/px_rec_ratio:
-                        s_filter[0] += [midget_grid[i][j][0]]
-                        s_filter[1] += [midget_grid[i][j][1]]
-                    filter_vals[i-i_low][j-j_low] += mult_val*spatialFilter(dist,0,par_m_ratio*sigma,alpha,beta)
-            del s_filter[1][0]
-            del s_filter[0][0]
-            #plt.plot(s_filter[1],s_filter[0],'go')
-            #print(2.*spat_filter_break_radius)
-            #plt.plot(dis)
-            #plt.show()
-            
-            fig = plt.figure(1)
-
-            ax = fig.add_subplot(221)
-            ax.set_title('spatial filter parasolic values')
-            plt.imshow(filter_vals, interpolation='nearest')
-            ax.set_aspect('equal')
-            plt.axis('off')
-
-            cax = fig.add_axes([0.,0.,1.,1.])
-            cax.get_xaxis().set_visible(False)
-            cax.get_yaxis().set_visible(False)
-            cax.patch.set_alpha(0)
-            cax.set_frame_on(False)
-            
-            out= 'img/'+ str(now.year) + '_' + str(now.month) + '_' + str(now.day) + '/parasol_spatial_filter_applied' + str(now.hour) + '_' + str(now.minute) + '_' + str(now.second) + '.pdf'
-            plt.savefig(out)
-            out= 'img/parasol_spatial_filter_applied.pdf'
-            plt.savefig(out)
-            plt.show()
             
     par_values[ij[1]][ij[0]][f] = sum(itertools.imap(lambda x: spatFilterParasolPx(midgets3d,pos,x,spat_filter_break_radius,par_m_ratio*sigma,alpha,beta), itertools.product(range(i_low,i_ceil),range(j_low,j_ceil))))
 
@@ -356,12 +306,22 @@ np.save(p_data, p_output)
 p_data.close()
 
 #--------------------------------------------------------------------------------------PLOT-SOME-STUFF
+'''
+
+m_file = open('data/midget_values.data','r+')
+m_output = np.load(m_file)   
+
+p_file = open('data/parasolic_values.data','r+')
+p_output = np.load(p_file)  
+
+m_file.close()
+p_file.close()
 
 fig = plt.figure(1)
 
 ax = fig.add_subplot(221)
 ax.set_title('midget output')
-plt.imshow(m_output[:,:,1], interpolation='nearest')
+plt.imshow(m_output[:,:,215], interpolation='nearest')
 ax.set_aspect('equal')
 plt.axis('off')
 
@@ -374,7 +334,7 @@ cax.set_frame_on(False)
 
 ax = fig.add_subplot(223)
 ax.set_title('parasolic output')
-plt.imshow(p_output[:,:,1], interpolation='nearest')
+plt.imshow(p_output[:,:,215], interpolation='nearest')
 ax.set_aspect('equal')
 plt.axis('off')
 
@@ -384,10 +344,10 @@ cax.get_yaxis().set_visible(False)
 cax.patch.set_alpha(0)
 cax.set_frame_on(False)
 
-out= 'img/'+ str(now.year) + '_' + str(now.month) + '_' + str(now.day) + '/output_mp_test_' + str(now.hour) + '_' + str(now.minute) + '_' + str(now.second) + '.pdf'
+out= 'img/'+ str(now.year) + '_' + str(now.month) + '_' + str(now.day) + '/output_mp_215fr_opposite_1fr0deg_' + str(now.hour) + '_' + str(now.minute) + '_' + str(now.second) + '.pdf'
 plt.savefig(out)
 
-out= 'img/output_mp_test.pdf'
+out= 'img/video/opposite_1fr0deg/output_mp_215fr.pdf'
 plt.savefig(out)
 
 plt.show()

@@ -19,12 +19,14 @@ syn_weight = 0.1
 #here needs to be a part that transfers potentials into poisson rates
 m_file = open('data/midget_values.data','r+')
 m_data = np.load(m_file)   
+m_file.close()
 
 p_file = open('data/parasolic_values.data','r+')
 p_data = np.load(p_file)  
+p_file.close()
 
-midget_rates=poissonRate(m_data)
-parasolic_rates=poissonRate(p_data)
+midget_rates=poissonRateMidgets(m_data)
+parasolic_rates=poissonRateParasols(p_data)
 
 print midget_rates
 
@@ -34,8 +36,10 @@ for i in range(len(midget_rates)):
     for j in range(len(midget_rates[0])):
        maxs.append(max(midget_rates[i][j]))
 print max(maxs)
+
+
 '''
-'''
+
 #-----------------------------------------------------------------------------------------NETWORK-PART
 #---------------------------------------------------------------------------INITIALIZE-POISSON-NEURONS
 
@@ -154,7 +158,7 @@ pyl.plot(ts, evs, ".")
 pyl.show()
 
 
-'''
+
 #----------------------------------------------------------------------------------PRINTING-THE-OUTPUT
 s = tp.GetElement(out,[0,0])
 mult = tp.GetElement(out_multi,[0,0])

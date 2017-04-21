@@ -5,17 +5,17 @@ from microsaccades_functions import *
 
 #---------------------------------------------------------------------------------------IMAGE-CREATION
 
-framerate = 2. #get some fancy frequency calculation
+framerate = 3. #get some fancy frequency calculation
 stripe_width = 15
 gap = 15
-offset = -15
+offset = -10
 image_size = 600
-degrees = 180
+degrees = 10
 
 #for normal distributed microsaccades
 sigma = 1
 
-file_location = "video/img_input/opposite"
+file_location = "video/img_input/stripes_3fr10deg"
 
 
 film_length = int(framerate)*(stripe_width+gap)
@@ -59,7 +59,6 @@ for f in range(film_length):
     fig.add_axes(ax)
     ax.imshow(canvas, cmap='gray')
     plt.savefig(file_location + "/first"+str(f+1).zfill(3)+".png",  dpi = 300)
-    
 
     img = cv2.imread(file_location + "/first"+str(f+1).zfill(3)+".png",0)
     rows,cols = img.shape
@@ -75,6 +74,7 @@ for f in range(film_length):
     
     plt.imshow(rotFig,cmap='gray')
     plt.savefig(file_location + "/second"+str(f+1).zfill(3)+".png",  dpi = 300)
+    plt.close()
     
     #------------------------------------------------------------------------------NORMAL-DISPLACEMENT
     
@@ -88,4 +88,5 @@ for f in range(film_length):
     
     plt.imshow(tlFig,cmap='gray')
     plt.savefig(file_location + "/second"+str(f+1).zfill(3)+".png",  dpi = 300)
+    plt.close()
     '''

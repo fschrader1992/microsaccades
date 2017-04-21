@@ -15,6 +15,7 @@ for i in zip(u,itertools.cycle(depos)):
     print i[1][0]
     
 '''
+#make video from inputs
 import numpy as np
 import matplotlib.pyplot as plt 
 import matplotlib.animation as animation
