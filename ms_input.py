@@ -57,7 +57,7 @@ while(cap.isOpened()):
         for i in range(height):
             for j in range(width):
                 pixels4d[i][j]+=[float(gray[i,j])]
-        if frame_number == 220:
+        if frame_number == 5:
             break
         cv2.imshow('frame',gray)
         if cv2.waitKey(1) & 0xFF == ord('q'):
@@ -143,7 +143,7 @@ def spatFilterPx(mult_list,center,kl,r_break,sigma,alpha,beta):
     
     mult_val = mult_list[kl[0]][kl[1]]
     kl = float(kl[0])*px_dist,float(kl[1])*px_dist
-    dist = np.sqrt(sum(pool.itertools.imap(lambda x,y,z: (x-y-z)*(x-y-z), center, kl, grid_shift)))
+    dist = np.sqrt(sum(itertools.imap(lambda x,y,z: (x-y-z)*(x-y-z), center, kl, grid_shift)))
     #make it a real circle
     if dist <= r_break:
         add_val = mult_val*spatialFilter(dist,0,sigma,alpha,beta)
@@ -174,14 +174,14 @@ def getSpatFilter(ij):
         grid[1] += [ij[1]]
         midget_grid[ij[0]][ij[1]] = (pos_i, pos_j)           
             
-    rec_pixels4d[ij[0]][ij[1]][f] = sum(pool.itertools.imap(lambda x: spatFilterPx(pixels3d,(pos_i,pos_j),x,spat_filter_break_radius,sigma,alpha,beta), pool.itertools.product(range(i_low,i_ceil),range(j_low,j_ceil))))
+    rec_pixels4d[ij[0]][ij[1]][f] = sum(itertools.imap(lambda x: spatFilterPx(pixels3d,(pos_i,pos_j),x,spat_filter_break_radius,sigma,alpha,beta), itertools.product(range(i_low,i_ceil),range(j_low,j_ceil))))
 
 
 #apply the spatial filter 
 for f in range(frame_number):
     print f
     pixels3d = [[item[f] for item in pxst] for pxst in pixels4d]      
-    pool.map(lambda x: getSpatFilter(x), pool.itertools.product(range(rec_height),range(rec_width)))
+    map(lambda x: getSpatFilter(x), itertools.product(range(rec_height),range(rec_width)))
      
 #pyl.figure()
 #pyl.subplot(121, aspect='equal')
@@ -207,8 +207,8 @@ for i in range(rec_height):
             if f > 200:
                 pop()
             #add a new entry to the time list of the pixel i,j
-            temp_filter_vals_on[i][j][f] = sum(pool.itertools.imap(lambda x,y: x*y, temp_rec_px4d, temp_filter_on))
-            #temp_filter_vals_off[i][j][f] = sum(pool.itertools.imap(lambda x,y: x*y, temp_rec_px4d, temp_filter_off))
+            temp_filter_vals_on[i][j][f] = sum(itertools.imap(lambda x,y: x*y, temp_rec_px4d, temp_filter_on))
+            #temp_filter_vals_off[i][j][f] = sum(itertools.imap(lambda x,y: x*y, temp_rec_px4d, temp_filter_off))
 
 
 #calculate the difference between surround and center fields --> needs to be done? and safe to file
@@ -246,7 +246,7 @@ def spatFilterParasolPx(mult_list,center,kl,r_break,sigma,alpha,beta):
     
     mult_val = mult_list[kl[0]][kl[1]]
     kl_val = midget_grid[kl[0]][kl[1]] 
-    dist = np.sqrt(sum(pool.itertools.imap(lambda x,y,z: (x-y+z)*(x-y+z), center, kl_val, grid_shift)))
+    dist = np.sqrt(sum(itertools.imap(lambda x,y,z: (x-y-z)*(x-y-z), center, kl_val, grid_shift)))
     #make it a real circle
     if dist <= r_break:
         add_val = mult_val*spatialFilter(dist,0,sigma,alpha,beta)
@@ -280,14 +280,14 @@ def getSpatFilterParasol(ij):
         pgrid[0] += [y_disp]
         pgrid[1] += [x_disp]
             
-    par_values[ij[1]][ij[0]][f] = sum(pool.itertools.imap(lambda x: spatFilterParasolPx(midgets3d,pos,x,spat_filter_break_radius,par_m_ratio*sigma,alpha,beta), itertools.product(range(i_low,i_ceil),range(j_low,j_ceil))))
+    par_values[ij[1]][ij[0]][f] = sum(itertools.imap(lambda x: spatFilterParasolPx(midgets3d,pos,x,spat_filter_break_radius,par_m_ratio*sigma,alpha,beta), itertools.product(range(i_low,i_ceil),range(j_low,j_ceil))))
 
 
 #apply the spatial filter 
 for f in range(frame_number):
     print f
     midgets3d = [[mi[f] for mi in midgs] for midgs in temp_filter_vals_on]   
-    pool.map(lambda x: getSpatFilterParasol(x), pool.itertools.product(range(int(2.*rec_height/3.)), range(int(rec_width/8))))
+    map(lambda x: getSpatFilterParasol(x), itertools.product(range(int(2.*rec_height/3.)), range(int(rec_width/8))))
 
 p_output = np.asarray(par_values)
 
@@ -321,7 +321,7 @@ fig = plt.figure(1)
 
 ax = fig.add_subplot(221)
 ax.set_title('midget output')
-plt.imshow(m_output[:,:,215], interpolation='nearest')
+plt.imshow(m_output[:,:,3], interpolation='nearest')
 ax.set_aspect('equal')
 plt.axis('off')
 
@@ -334,7 +334,7 @@ cax.set_frame_on(False)
 
 ax = fig.add_subplot(223)
 ax.set_title('parasolic output')
-plt.imshow(p_output[:,:,215], interpolation='nearest')
+plt.imshow(p_output[:,:,3], interpolation='nearest')
 ax.set_aspect('equal')
 plt.axis('off')
 

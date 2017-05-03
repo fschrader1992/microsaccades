@@ -27,7 +27,7 @@ p_file.close()
 
 midget_rates=poissonRateMidgets(m_data)
 parasolic_rates=poissonRateParasols(p_data)
-
+'''
 print midget_rates
 
 #to check for maximum spike rates in order to adopt conversion of film input
@@ -187,4 +187,3 @@ plt.hist(np.diff(sp), bins=np.arange(0., 1.005, 0.02),
             histtype='step', color='b')
 plt.title('ISI histogram')
 plt.show()
-'''
