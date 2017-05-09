@@ -1,3 +1,4 @@
+#!/bin/python
 #THIS PART READS THE PIXELS OF A MOVIE AND APPLIES THE TEMPORAL FILTERS TO THE PROPOSED MODEL FOR MICROSACCADES. THE OUTPUT ARE THE POTENTIAL VALUES FOR THE POISSON RATES.
 '''
 loading the video into an array
@@ -5,6 +6,8 @@ loading the video into an array
 -> after that calculate the values of each tempral flter at each time and store them in another array which will be the basis for changing poisson rates
 '''
 
+import sys
+import os
 import pylab as pyl
 import numpy as np
 import matplotlib.pyplot as plt
@@ -26,11 +29,14 @@ except NotImplementedError:
 	
 pool = multiprocessing.Pool(processes=cpus)
 
+sim_title = sys.argv[1]
+handle_name = sys.argv[2]
+
 #load video
-cap = cv2.VideoCapture('/video/opposite_1fr0deg.mp4')
+cap = cv2.VideoCapture('video/' + str(sim_title) +'/'+ str(handle_name) + '.mp4')
 #just to be sure
 while not cap.isOpened():
-    cap = cv2.VideoCapture('video/opposite_1fr0deg.mp4')
+    cap = cv2.VideoCapture('video/' + str(sim_title) +'/'+ str(handle_name) + '.mp4')
     cv2.waitKey(1000)
     print "Wait for the header"
     
@@ -57,8 +63,8 @@ while(cap.isOpened()):
         for i in range(height):
             for j in range(width):
                 pixels4d[i][j]+=[float(gray[i,j])]
-        if frame_number == 5:
-            break
+        #if frame_number == 3:
+        #    break
         cv2.imshow('frame',gray)
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
@@ -217,7 +223,7 @@ m_output = np.asarray(temp_filter_vals_on)#np.subtract(temp_filter_vals_on, temp
 
 #-------------------------------------------------------------------------------------PARASOLIC-OUTPUT
 
-par_values = [[[0. for f in range(frame_number)] for i in range(int(2.*rec_height/3.))] for j in range(int(rec_width/8))]
+par_values = [[[0. for f in range(frame_number)] for j in range(int(rec_width/8))] for i in range(int(2.*rec_height/3.))] 
 
 def spatFilterParasolPx(mult_list,center,kl,r_break,sigma,alpha,beta):
     add_val = 0
@@ -280,7 +286,7 @@ def getSpatFilterParasol(ij):
         pgrid[0] += [y_disp]
         pgrid[1] += [x_disp]
             
-    par_values[ij[1]][ij[0]][f] = sum(itertools.imap(lambda x: spatFilterParasolPx(midgets3d,pos,x,spat_filter_break_radius,par_m_ratio*sigma,alpha,beta), itertools.product(range(i_low,i_ceil),range(j_low,j_ceil))))
+    par_values[ij[0]][ij[1]][f] = sum(itertools.imap(lambda x: spatFilterParasolPx(midgets3d,pos,x,spat_filter_break_radius,par_m_ratio*sigma,alpha,beta), itertools.product(range(i_low,i_ceil),range(j_low,j_ceil))))
 
 
 #apply the spatial filter 
@@ -306,11 +312,11 @@ print ms, ps
 #plt.show()
 
 #------------------------------------------------------------------------------------------SAVE-OUTPUT
-m_data = open('data/midget_values.data','w+')
+m_data = open('data/'+sim_title+'/midget_rates_'+str(handle_name)+'.data','w+')
 np.save(m_data, m_output)
 m_data.close()
 
-p_data = open('data/parasolic_values.data','w+')
+p_data = open('data/'+sim_title+'/parasolic_rates_'+str(handle_name)+'.data','w+')
 np.save(p_data, p_output)
 p_data.close()
 
@@ -321,7 +327,7 @@ fig = plt.figure(1)
 
 ax = fig.add_subplot(221)
 ax.set_title('midget output')
-plt.imshow(m_output[:,:,3], interpolation='nearest')
+plt.imshow(m_output[:,:,250], aspect='auto', interpolation='nearest')
 ax.set_aspect('equal')
 plt.axis('off')
 
@@ -334,20 +340,20 @@ cax.set_frame_on(False)
 
 ax = fig.add_subplot(223)
 ax.set_title('parasolic output')
-plt.imshow(p_output[:,:,3], interpolation='nearest')
+plt.imshow(p_output[:,:,250], aspect='auto', interpolation='nearest')
 ax.set_aspect('equal')
 plt.axis('off')
 
-cax = fig.add_axes([0.,0.,1.,1.])
+cax = fig.add_axes([0.,0.,1.,.5])
 cax.get_xaxis().set_visible(False)
 cax.get_yaxis().set_visible(False)
 cax.patch.set_alpha(0)
 cax.set_frame_on(False)
 
-out= 'img/'+ str(now.year) + '_' + str(now.month) + '_' + str(now.day) + '/output_mp_215fr_opposite_1fr0deg_' + str(now.hour) + '_' + str(now.minute) + '_' + str(now.second) + '.pdf'
+#out= 'img/'+ str(now.year) + '_' + str(now.month) + '_' + str(now.day) + '/output_mp_215fr_opposite_1fr0deg_' + str(now.hour) + '_' + str(now.minute) + '_' + str(now.second) + '.pdf'
+#plt.savefig(out)
+
+out= 'img/video/' + str(sim_title) +'/'+ str(handle_name) + '.pdf'
 plt.savefig(out)
 
-out= 'img/video/opposite_1fr0deg/output_mp_215fr.pdf'
-plt.savefig(out)
-
-plt.show()
+#plt.show()

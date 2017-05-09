@@ -12,7 +12,7 @@ framerate = 3. #get some fancy frequency calculation
 stripe_width = 15
 gap = 15
 image_size = 560 # two times because of rotation
-degrees = 30
+degrees = 0
 
 degrees = sys.argv[1]
 
@@ -20,7 +20,7 @@ file_location = "video/img_input/phases_0fr" + str(degrees) + "deg"
 
 degrees = float(degrees)
 
-film_length = 4
+film_length = 1000
 
 canvas = np.zeros((image_size, image_size))
 current_col = 0
