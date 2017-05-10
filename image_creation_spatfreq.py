@@ -25,19 +25,12 @@ file_location = "video/img_input/spatfreq_0fr0deg" + str(freq) + "spat"
 film_length = 400              
 c=[]
 even = False
+offset = int(half_wl)
 #maybe here a loop to make it last even longer
 for f in range(film_length):
     #if f%framerate == 0 and f>0: #not yet
     #    offset += 1
-    if f%250 == 0:
-        if even == False:
-            even = True
-        else: 
-            even = False
-    if even == False:
-        offset = int(half_wl)
-    else:
-        offset = 0
+    
 
     canvas = np.zeros((image_size, image_size))
     canvas[0,0]=1
