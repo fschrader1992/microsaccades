@@ -44,7 +44,7 @@ while not cap.isOpened():
 width = int(cap.get(3))
 height = int(cap.get(4))
 #dt=1/video_fps
-dt = 1/cap.get(5)
+dt = 1. #1/cap.get(5)
 frmct = cap.get(7)
 print(width, height, dt, frmct)
 
@@ -84,12 +84,12 @@ cv2.destroyAllWindows()
 
 
 #problem here is now, that both create the same output and therefore nothing is produced
-off_tau1 = .5 #.05 --> what is dt in Garrett's code? 0.1ms or 1ms? depending on that, this is the 
-off_tau2 = 1.5 #.1     right value
-off_p = .8 #.05
+#off_tau1 = 5 #.05 --> what is dt in Garrett's code? 0.1ms or 1ms? depending on that, this is the 
+#off_tau2 = 15 #.1     right value
+#off_p = .8 #.05
 
-on_tau1 = .5 #.2
-on_tau2 = 1.5 #.1
+on_tau1 = 5 #.2
+on_tau2 = 15 #.1
 on_p = .8 #.05
 
 #set values for the spatial filters for the pixel in \mum(?)

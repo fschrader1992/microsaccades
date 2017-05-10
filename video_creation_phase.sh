@@ -1,15 +1,12 @@
 #!/bin/bash
 #read video name
 
-for i in {0..330..30}
+for i in {0..0}
 do
     deg=$i
     echo $deg
     if [ ! -d ./video/img_input/phases_0fr${deg}deg ]; then
-    mkdir -p ./video/img_input/phases_0fr${deg}deg;
-    fi
-    if [ ! -d ./img/video/phases_0fr${deg}deg ]; then
-    mkdir -p ./img/video/phases_0fr${deg}deg;
+    mkdir -p ./video/img_input/phases_0fr${deg};
     fi
     echo "folders created"
     python image_creation_phase.py $deg
