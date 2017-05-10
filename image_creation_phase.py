@@ -9,8 +9,8 @@ from microsaccades_functions import *
 #---------------------------------------------------------------------------------------IMAGE-CREATION
 
 framerate = 3. #get some fancy frequency calculation
-stripe_width = 15
-gap = 15
+stripe_width = 4
+gap = 4
 image_size = 560 # two times because of rotation
 degrees = 0
 
