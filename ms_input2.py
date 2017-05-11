@@ -137,7 +137,7 @@ par_m_ratio = 4.
 spat_filter_break_radius = 6 #filter radius in px 
 
 #subsequent values
-receptor_dist = px_rec_ratio*px_dist #1.5
+midget_dist = px_rec_ratio*px_dist #1.5
 
 #we actually need to calculate the values of each temporal filter just once
 temp_filter_on = tempFilter(200,dt,on_tau1,on_tau2,on_p) #mayber 120, compare to paper --> 200 in Garrett's code!      
@@ -177,8 +177,8 @@ def spatFilterPx(mult_list,center,kl,r_break,sigma,alpha,beta):
         new_kl1 = kl[1] + ml_w
         klv_w = -width/px_rec_ratio
         
-    kl = (receptor_dist*new_kl0,receptor_dist*new_kl1)
-    grid_shift = (receptor_dist*klv_h,receptor_dist*klv_w)
+    kl = (new_kl0,new_kl1)
+    grid_shift = (midget_dist*klv_h,midget_dist*klv_w)
     
     mult_val = mult_list[kl[0]][kl[1]]
     kl = float(kl[0])*px_dist,float(kl[1])*px_dist
@@ -208,13 +208,13 @@ def getSpatFilter(ij):
     j_low = int(pos_j*px_rec_ratio-spat_filter_break_radius) # -> all j with dist < r
     j_ceil = int(pos_j*px_rec_ratio+spat_filter_break_radius)+1
     
+    pos_i=midget_dist*pos_i
+    pos_j=midget_dist*pos_j
+    
     if f==0:
         grid[0] += [ij[0]]
         grid[1] += [ij[1]]
-        midget_grid[ij[0]][ij[1]] = (pos_i, pos_j)           
-    
-    pos_i=receptor_dist*pos_i
-    pos_j=receptor_dist*pos_j
+        midget_grid[ij[0]][ij[1]] = (pos_i, pos_j) 
     
     #spatial filters can allow negative potentials
     trs = sum(itertools.imap(lambda x: spatFilterPx(pixels3d,(pos_i,pos_j),x,spat_filter_break_radius,sigma,alpha,beta), itertools.product(range(i_low,i_ceil),range(j_low,j_ceil))))
@@ -285,9 +285,9 @@ def spatFilterParasolPx(mult_list,center,kl,r_break,sigma,alpha,beta):
     if kl[1] < 0:
         new_kl1 = kl[1] + ml_w
         klv_w = -width/px_rec_ratio
-    kl = (receptor_dist*new_kl0,receptor_dist*new_kl1)
+    kl = (new_kl0,new_kl1)
 
-    grid_shift = (receptor_dist*klv_h,receptor_dist*klv_w)
+    grid_shift = (midget_dist*klv_h,midget_dist*klv_w)
     
     mult_val = mult_list[kl[0]][kl[1]]
     kl_val = midget_grid[kl[0]][kl[1]] 
