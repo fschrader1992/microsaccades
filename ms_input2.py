@@ -218,7 +218,7 @@ def getSpatFilter(ij):
     
     #spatial filters can allow negative potentials
     trs = sum(itertools.imap(lambda x: spatFilterPx(pixels3d,(pos_i,pos_j),x,spat_filter_break_radius,sigma,alpha,beta), itertools.product(range(i_low,i_ceil),range(j_low,j_ceil))))
-    rec_pixels4d[ij[0]][ij[1]][f] = trs if trs > 0 
+    rec_pixels4d[ij[0]][ij[1]][f] = trs if trs > 0 else 0
 
 
 #apply the spatial filter 
@@ -252,7 +252,7 @@ for i in range(rec_height):
                 pop()
             #add a new entry to the time list of the pixel i,j
             trs = sum(itertools.imap(lambda x,y: x*y, temp_rec_px4d, temp_filter_on))
-            temp_filter_vals_on[i][j][f] = trs if trs > 0 
+            temp_filter_vals_on[i][j][f] = trs if trs > 0 else 0
             #temp_filter_vals_off[i][j][f] = sum(itertools.imap(lambda x,y: x*y, temp_rec_px4d, temp_filter_off))
 
 
