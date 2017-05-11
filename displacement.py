@@ -5,7 +5,7 @@ from scipy import interpolate
 from microsaccades_functions import *
 
 #displacement is zero and standard derivation is receptor size (0.5 arcmin)
-mu, sigma = 0.,1
+mu, sigma = 0.,.5
 
 dis = np.random.normal(mu, sigma)
 
@@ -16,16 +16,16 @@ tck = interpolate.splrep(x, y, s=0)
 xnew = np.arange(0, 100, .1)
 ynew = interpolate.splev(xnew, tck, der=0)
 
-ms_disp = -12*np.ones(300)
-ms_disp = np.append(ms_disp,30*np.ones(300))
-ms_disp = np.append(ms_disp,-18*np.ones(300))
-ms_disp = np.append(ms_disp,12*np.ones(100))
+ms_disp = -4*np.ones(300)
+ms_disp = np.append(ms_disp,10*np.ones(300))
+ms_disp = np.append(ms_disp,-10*np.ones(300))
+ms_disp = np.append(ms_disp,2*np.ones(100))
 
 ynew = np.add(ynew,ms_disp)
 
 xnewer = np.arange(0, 1000, 1.)
 plt.figure()
-plt.plot(x, y, 'x', xnewer, ynew)
+plt.plot(xnewer, ynew)
 plt.legend(['Linear', 'Cubic Spline'])
 plt.title('Cubic-spline interpolation')
 plt.savefig('img/grating_phase/displacements.pdf')

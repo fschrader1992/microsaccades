@@ -217,8 +217,8 @@ def getSpatFilter(ij):
     pos_j=receptor_dist*pos_j
     
     #spatial filters can allow negative potentials
-    rec_pixels4d[ij[0]][ij[1]][f] = sum(itertools.imap(lambda x: spatFilterPx(pixels3d,(pos_i,pos_j),x,spat_filter_break_radius,sigma,alpha,beta), itertools.product(range(i_low,i_ceil),range(j_low,j_ceil))))
-    #rec_pixels4d[ij[0]][ij[1]][f] = trs if trs > 0 
+    trs = sum(itertools.imap(lambda x: spatFilterPx(pixels3d,(pos_i,pos_j),x,spat_filter_break_radius,sigma,alpha,beta), itertools.product(range(i_low,i_ceil),range(j_low,j_ceil))))
+    rec_pixels4d[ij[0]][ij[1]][f] = trs if trs > 0 
 
 
 #apply the spatial filter 
@@ -353,11 +353,11 @@ print ms, ps
 #plt.show()
 
 #------------------------------------------------------------------------------------------SAVE-OUTPUT
-m_data = open('data/'+sim_title+'/midget_rates_'+str(handle_name)+'.data','w+')
+m_data = open('data/'+sim_title+'/midget_rates_'+str(handle_name)+'_ms2.data','w+')
 np.save(m_data, m_output)
 m_data.close()
 
-p_data = open('data/'+sim_title+'/parasolic_rates_'+str(handle_name)+'.data','w+')
+p_data = open('data/'+sim_title+'/parasolic_rates_'+str(handle_name)+'_ms2.data','w+')
 np.save(p_data, p_output)
 p_data.close()
 
@@ -394,7 +394,7 @@ cax.set_frame_on(False)
 #out= 'img/'+ str(now.year) + '_' + str(now.month) + '_' + str(now.day) + '/output_mp_215fr_opposite_1fr0deg_' + str(now.hour) + '_' + str(now.minute) + '_' + str(now.second) + '.pdf'
 #plt.savefig(out)
 
-out= 'img/video/' + str(sim_title) +'/'+ str(handle_name) + '.pdf'
+out= 'img/video/' + str(sim_title) +'/'+ str(handle_name) + '_ms2.pdf'
 plt.savefig(out)
 
 #plt.show()

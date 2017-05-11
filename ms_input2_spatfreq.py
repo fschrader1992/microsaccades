@@ -8,6 +8,7 @@ loading the video into an array
 
 import sys
 import os
+import glob
 import pylab as pyl
 import numpy as np
 import matplotlib.pyplot as plt
@@ -15,25 +16,15 @@ import matplotlib.animation as animation
 import cv2
 import datetime
 import itertools 
-#import multiprocessing
+import multiprocessing
 from microsaccades_functions import *
 
 #-------------------------------------------------------------------------------------------LOAD-VIDEO
 now = datetime.datetime.now()
-'''
-#for parallel computing
-try:
-    cpus = multiprocessing.cpu_count()
-except NotImplementedError:
-    cpus = 2   # arbitrary default
-	
-pool = multiprocessing.Pool(processes=cpus)
-'''
+
 sim_title = sys.argv[1]
 handle_name = sys.argv[2]
 
-'''
-#alternative method for videos
 frames = []
 os.chdir("video/img_input/" + handle_name)
 for file in glob.glob("second*.png"):
@@ -63,49 +54,6 @@ for file in frames:
 cv2.destroyAllWindows()
 
 os.chdir("../../..")
-'''
-
-#load video
-cap = cv2.VideoCapture('video/' + str(sim_title) +'/'+ str(handle_name) + '.mp4')
-#just to be sure
-while not cap.isOpened():
-    cap = cv2.VideoCapture('video/' + str(sim_title) +'/'+ str(handle_name) + '.mp4')
-    cv2.waitKey(1000)
-    print "Wait for the header"
-    
-#data of video
-width = int(cap.get(3))
-height = int(cap.get(4))
-#dt=1/video_fps
-dt = 1. #1/cap.get(5)
-frmct = cap.get(7)
-print(width, height, dt, frmct)
-
-#assign the all time all pixel array/list
-pixels4d = [[[] for j in range(width)] for i in range(height)]
-
-
-while(cap.isOpened()):
-    ret, frame = cap.read()
-    #check, whether there's a frame left, if not break loop
-    if ret == True:
-        frame_number = int(cap.get(1))
-        #will probably be abundant later on + what about color vision?
-        gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-        #store 2D array in pixels4d 
-        for i in range(height):
-            for j in range(width):
-                pixels4d[i][j]+=[float(gray[i,j])]
-        if frame_number == 2:
-            break
-        cv2.imshow('frame',gray)
-        if cv2.waitKey(1) & 0xFF == ord('q'):
-            break
-    else:
-        break
-    
-cap.release()
-cv2.destroyAllWindows()
 
 #ffile =open('pixels4d.data','w+')
 #ffile.write(str(pixels4d[9][9]))
@@ -130,17 +78,17 @@ alpha = .1
 beta = 5 #CSR
 sigma = 1 # parasolic/midget cell ratio * sigma (=1)
 px_rec_ratio = 3. #pixel to receptor ratio, needed for receptor distance/number
-px_dist= 1./2.#px_rec_ratio #set rec distance to one, if changes, also change for parasolic spatial filter
+px_dist= 1./px_rec_ratio #set rec distance to one, if changes, also change for parasolic spatial filter
 par_m_ratio = 4.
 
 #spatial filter values determined
 spat_filter_break_radius = 6 #filter radius in px 
 
 #subsequent values
-receptor_dist = px_rec_ratio*px_dist #1.5
+receptor_dist = 1. #px_rec_ratio*px_dist #for the moment, later maybe hexagonal?
 
 #we actually need to calculate the values of each temporal filter just once
-temp_filter_on = tempFilter(200,dt,on_tau1,on_tau2,on_p) #mayber 120, compare to paper --> 200 in Garrett's code!      
+temp_filter_on = tempFilter(40,dt,on_tau1,on_tau2,on_p) #40 samples respective 200ms      
 
 
 rec_height = int(np.floor((height-spat_filter_break_radius)/(1.732*px_rec_ratio))) #2*cos(30deg)
@@ -217,8 +165,8 @@ def getSpatFilter(ij):
     pos_j=receptor_dist*pos_j
     
     #spatial filters can allow negative potentials
-    rec_pixels4d[ij[0]][ij[1]][f] = sum(itertools.imap(lambda x: spatFilterPx(pixels3d,(pos_i,pos_j),x,spat_filter_break_radius,sigma,alpha,beta), itertools.product(range(i_low,i_ceil),range(j_low,j_ceil))))
-    #rec_pixels4d[ij[0]][ij[1]][f] = trs if trs > 0 
+    trs = sum(itertools.imap(lambda x: spatFilterPx(pixels3d,(pos_i,pos_j),x,spat_filter_break_radius,sigma,alpha,beta), itertools.product(range(i_low,i_ceil),range(j_low,j_ceil))))
+    rec_pixels4d[ij[0]][ij[1]][f] = trs if trs > 0 
 
 
 #apply the spatial filter 
@@ -248,7 +196,7 @@ for i in range(rec_height):
         pop = temp_rec_px4d.pop
         for f in range(frame_number):
             temp_rec_px4d.insert(0, float(rec_pixels4d[i][j][f]))
-            if f > 200:
+            if f > 40:
                 pop()
             #add a new entry to the time list of the pixel i,j
             trs = sum(itertools.imap(lambda x,y: x*y, temp_rec_px4d, temp_filter_on))
@@ -353,11 +301,11 @@ print ms, ps
 #plt.show()
 
 #------------------------------------------------------------------------------------------SAVE-OUTPUT
-m_data = open('data/'+sim_title+'/midget_rates_'+str(handle_name)+'.data','w+')
+m_data = open('data/'+sim_title+'/midget_rates_'+str(handle_name)+'_ms2.data','w+')
 np.save(m_data, m_output)
 m_data.close()
 
-p_data = open('data/'+sim_title+'/parasolic_rates_'+str(handle_name)+'.data','w+')
+p_data = open('data/'+sim_title+'/parasolic_rates_'+str(handle_name)+'_ms2.data','w+')
 np.save(p_data, p_output)
 p_data.close()
 
@@ -394,7 +342,7 @@ cax.set_frame_on(False)
 #out= 'img/'+ str(now.year) + '_' + str(now.month) + '_' + str(now.day) + '/output_mp_215fr_opposite_1fr0deg_' + str(now.hour) + '_' + str(now.minute) + '_' + str(now.second) + '.pdf'
 #plt.savefig(out)
 
-out= 'img/video/' + str(sim_title) +'/'+ str(handle_name) + '.pdf'
+out= 'img/video/' + str(sim_title) +'/'+ str(handle_name) + '_ms2.pdf'
 plt.savefig(out)
 
-#plt.show()
+#plt.show()'''

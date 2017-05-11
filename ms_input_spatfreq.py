@@ -8,6 +8,7 @@ loading the video into an array
 
 import sys
 import os
+import glob
 import pylab as pyl
 import numpy as np
 import matplotlib.pyplot as plt
@@ -21,58 +22,38 @@ from microsaccades_functions import *
 #-------------------------------------------------------------------------------------------LOAD-VIDEO
 now = datetime.datetime.now()
 
-#for parallel computing
-try:
-    cpus = multiprocessing.cpu_count()
-except NotImplementedError:
-    cpus = 2   # arbitrary default
-	
-pool = multiprocessing.Pool(processes=cpus)
-
 sim_title = sys.argv[1]
 handle_name = sys.argv[2]
 
-#load video
-cap = cv2.VideoCapture('video/' + str(sim_title) +'/'+ str(handle_name) + '.mp4')
-#just to be sure
-while not cap.isOpened():
-    cap = cv2.VideoCapture('video/' + str(sim_title) +'/'+ str(handle_name) + '.mp4')
-    cv2.waitKey(1000)
-    print "Wait for the header"
-    
-#data of video
-width = int(cap.get(3))
-height = int(cap.get(4))
-#dt=1/video_fps
-dt = 5. #1/cap.get(5)
-frmct = cap.get(7)
-print(width, height, dt, frmct)
+frames = []
+os.chdir("video/img_input/" + handle_name)
+for file in glob.glob("second*.png"):
+    #print(file)
+    frames+=[file]
+frames.sort()
+print frames
+
+f=cv2.imread(frames[0])
+height, width = f.shape[:2]
+dt = 5.
+print height, width
 
 #assign the all time all pixel array/list
 pixels4d = [[[] for j in range(width)] for i in range(height)]
 
 
-while(cap.isOpened()):
-    ret, frame = cap.read()
-    #check, whether there's a frame left, if not break loop
-    if ret == True:
-        frame_number = int(cap.get(1))
-        #will probably be abundant later on + what about color vision?
-        gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-        #store 2D array in pixels4d 
-        for i in range(height):
-            for j in range(width):
-                pixels4d[i][j]+=[float(gray[i,j])]
-        #if frame_number == 3:
-        #    break
-        cv2.imshow('frame',gray)
-        if cv2.waitKey(1) & 0xFF == ord('q'):
-            break
-    else:
-        break
+for file in frames:
+
+    frame = cv2.imread(file)
+    gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+    #store 2D array in pixels4d 
+    for i in range(height):
+        for j in range(width):
+            pixels4d[i][j]+=[float(gray[i,j])]
     
-cap.release()
 cv2.destroyAllWindows()
+
+os.chdir("../../..")
 
 #ffile =open('pixels4d.data','w+')
 #ffile.write(str(pixels4d[9][9]))
@@ -144,8 +125,8 @@ def spatFilterPx(mult_list,center,kl,r_break,sigma,alpha,beta):
         new_kl1 = kl[1] + ml_w
         klv_w = -width/px_rec_ratio
         
-    kl = (new_kl0,new_kl1)
-    grid_shift = (klv_h,klv_w)
+    kl = (receptor_dist*new_kl0,receptor_dist*new_kl1)
+    grid_shift = (receptor_dist*klv_h,receptor_dist*klv_w)
     
     mult_val = mult_list[kl[0]][kl[1]]
     kl = float(kl[0])*px_dist,float(kl[1])*px_dist
@@ -179,8 +160,13 @@ def getSpatFilter(ij):
         grid[0] += [ij[0]]
         grid[1] += [ij[1]]
         midget_grid[ij[0]][ij[1]] = (pos_i, pos_j)           
-            
+    
+    pos_i=receptor_dist*pos_i
+    pos_j=receptor_dist*pos_j
+    
+    #spatial filters can allow negative potentials
     rec_pixels4d[ij[0]][ij[1]][f] = sum(itertools.imap(lambda x: spatFilterPx(pixels3d,(pos_i,pos_j),x,spat_filter_break_radius,sigma,alpha,beta), itertools.product(range(i_low,i_ceil),range(j_low,j_ceil))))
+    #rec_pixels4d[ij[0]][ij[1]][f] = trs if trs > 0 
 
 
 #apply the spatial filter 
@@ -213,7 +199,8 @@ for i in range(rec_height):
             if f > 40:
                 pop()
             #add a new entry to the time list of the pixel i,j
-            temp_filter_vals_on[i][j][f] = sum(itertools.imap(lambda x,y: x*y, temp_rec_px4d, temp_filter_on))
+            trs = sum(itertools.imap(lambda x,y: x*y, temp_rec_px4d, temp_filter_on))
+            temp_filter_vals_on[i][j][f] = trs if trs > 0 
             #temp_filter_vals_off[i][j][f] = sum(itertools.imap(lambda x,y: x*y, temp_rec_px4d, temp_filter_off))
 
 
@@ -246,9 +233,9 @@ def spatFilterParasolPx(mult_list,center,kl,r_break,sigma,alpha,beta):
     if kl[1] < 0:
         new_kl1 = kl[1] + ml_w
         klv_w = -width/px_rec_ratio
-    kl = (new_kl0,new_kl1)
+    kl = (receptor_dist*new_kl0,receptor_dist*new_kl1)
 
-    grid_shift = (klv_h,klv_w)
+    grid_shift = (receptor_dist*klv_h,receptor_dist*klv_w)
     
     mult_val = mult_list[kl[0]][kl[1]]
     kl_val = midget_grid[kl[0]][kl[1]] 
@@ -285,7 +272,9 @@ def getSpatFilterParasol(ij):
     if f==0:
         pgrid[0] += [y_disp]
         pgrid[1] += [x_disp]
-            
+    
+    pos[0]= receptor_dist*pos[0]
+    pos[1]= receptor_dist*pos[1]
     par_values[ij[0]][ij[1]][f] = sum(itertools.imap(lambda x: spatFilterParasolPx(midgets3d,pos,x,spat_filter_break_radius,par_m_ratio*sigma,alpha,beta), itertools.product(range(i_low,i_ceil),range(j_low,j_ceil))))
 
 
@@ -356,4 +345,4 @@ cax.set_frame_on(False)
 out= 'img/video/' + str(sim_title) +'/'+ str(handle_name) + '.pdf'
 plt.savefig(out)
 
-#plt.show()
+#plt.show()'''

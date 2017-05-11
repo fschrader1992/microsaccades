@@ -9,14 +9,14 @@ from microsaccades_functions import *
 #---------------------------------------------------------------------------------------IMAGE-CREATION
 
 framerate = 3. #get some fancy frequency calculation
-stripe_width = 12
-gap = 12
-image_size = 340 # two times because of rotation
+stripe_width = 18
+gap = 18
+image_size = 280
 degrees = 0
 
 degrees = sys.argv[1]
 
-file_location = "video/img_input/phases_0fr" + str(degrees) + "deg_24px_only_border"
+file_location = "video/img_input/phases_0fr" + str(degrees) + "deg_36px_only_border"
 
 degrees = float(degrees)
 
@@ -73,7 +73,7 @@ for f in range(film_length):
     
     
     #save to file, comment for additional rotation
-    tlFig = tlFig[50:290,50:290]
+    tlFig = tlFig[20:260,20:260]
     fig.set_size_inches(2, 2)
     
     plt.imshow(tlFig,cmap='gray')
