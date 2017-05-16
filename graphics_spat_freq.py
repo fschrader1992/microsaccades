@@ -43,6 +43,9 @@ plt.plot(temp_filter_on)
 plt.savefig('img/temp_filter_5ms.pdf')
 plt.show()
 '''
+import sys
+import os
+import glob
 import pylab as pyl
 import numpy as np
 import cv2
@@ -70,7 +73,7 @@ p1_data = np.load(p1_file)
 p1_file.close()
 
 out_data = []
-for i in range(14,26):
+for i in range(2,38):
     out_data += [np.sqrt(np.power(m1_data[10,i],2))]
  
 d_file = open('data/phase_displacement.data','r+')
@@ -84,7 +87,7 @@ d_file.close()
 f, ((ax1, ax2), (ax3, ax4)) = plt.subplots(2, 2, sharex='col')
 
 ax1.set_title('Midget Cells')
-ax1.imshow(out_data, interpolation='nearest', cmap='gist_heat', aspect='auto')
+ax1.imshow(m1_data[10,2:38], interpolation='nearest', cmap='gist_heat', aspect='auto')
 ax1.set_ylabel('Relative RF Phase (deg)')
 
 #cax = fig.add_axes([0.,0.,1.,1.])
@@ -102,7 +105,7 @@ ax3.set_ylabel('Gaze direction (arcmin)')
 #plt.plot(m3_data[20,20])
 
 out_data = []
-for i in range(2,10):
+for i in range(0,12):
     out_data += [np.sqrt(np.power(p1_data[4,i],2))]
  
 d_file = open('data/phase_displacement.data','r+')
@@ -128,7 +131,8 @@ out= 'img/'+ str(now.year) + '_' + str(now.month) + '_' + str(now.day) + '/phase
 plt.savefig(out)
 plt.show()
 
-
+#plt.plot(p1_data[5,5])
+#plt.show()
 
 
 #here for two
@@ -142,7 +146,7 @@ p1_data = np.load(p1_file)
 p1_file.close()
 
 out_data = []
-for i in range(14,26):
+for i in range(2,38):
     out_data += [np.sqrt(np.power(m1_data[10,i],2))]
  
 d_file = open('data/phase_displacement.data','r+')
@@ -174,7 +178,7 @@ ax3.set_ylabel('Gaze direction (arcmin)')
 #plt.plot(m3_data[20,20])
 
 out_data = []
-for i in range(2,10):
+for i in range(0,12):
     out_data += [np.sqrt(np.power(p1_data[4,i],2))]
  
 d_file = open('data/phase_displacement.data','r+')
@@ -199,9 +203,11 @@ plt.savefig('img/ana/phases_ms2.pdf')
 out= 'img/'+ str(now.year) + '_' + str(now.month) + '_' + str(now.day) + '/phases_midget_parasols_ms2_' + str(now.hour) + '_' + str(now.minute) + '_' + str(now.second) + '.pdf'
 plt.savefig(out)
 plt.show()
+
 '''
-
-
+m1_file = open('data/spat_freq/parasolic_rates_spatfreq_0fr0deg15spat.data','r+')
+m1_data = np.load(m1_file)   
+m1_file.close()
 
 m2_file = open('data/spat_freq/parasolic_rates_spatfreq_0fr0deg10spat.data','r+')
 m2_data = np.load(m2_file)   
@@ -211,12 +217,62 @@ m3_file = open('data/spat_freq/midget_rates_spatfreq_0fr0deg15spat.data','r+')
 m3_data = np.load(m3_file)   
 m3_file.close()
 
+
+x_val=[1,2,5,10,15,20,30,60]
+
+m_first = []
+p_first = []
+p_second = []
+os.chdir("data/spat_freq")
+for file in glob.glob("parasolic*spat_ms2.data"):
+    p_file = open(file,'r+')
+    p_data = np.load(p_file)   
+    p_file.close()
+    p_ft=fft(p_data[5,5,50:])
+    #plt.plot(np.abs(p_ft))
+    #plt.show()
+    p_ft=np.abs(p_ft)
+    p_first+=[p_ft[7].real]
+    p_second+=[p_ft[3].real]
+
+for file in glob.glob("midget*spat_ms2.data"):
+    m_file = open(file,'r+')
+    m_data = np.load(m_file)   
+    m_file.close()
+    m_ft=fft(m_data[5,5,50:])
+    m_ft=fft(np.abs(m_ft))
+    m_first+=[m_ft[3].real]
+os.chdir('../..')    
 #fourier-analysis
 
-#m2ft=fft(m3_data[5,5])
+plt.subplot(221)
+
+plt.title('Parasol cells')
+plt.plot(x_val,p_first)
+plt.plot(x_val,p_second)
+plt.xscale('log')
+plt.yscale('log')
+plt.xlabel('spatial frequency (cyc/deg)')
+plt.ylabel('Firing rate (spike/s)')
+
+plt.subplot(222)
+
+plt.title('Midget cells')
+plt.plot(x_val,m_first)
+plt.xscale('log')
+plt.yscale('log')
+plt.xlabel('spatial frequency (cyc/deg)')
+#plt.ylabel('Firing rate (spike/s)')
+#m1ft=fft(m3_data[5,5,50:])
+#m2ft=fft(m2_data[5,5,50:])
+plt.show()
+plt.plot(p_ft)
+plt.plot(m_ft)
 
 #plt.plot(np.sqrt(np.power(m2_data[5,5],2)))
-plt.plot(m3_data[5,5])#(np.sqrt(np.power(m3_data[5,5],2)))
-#plt.plot(m2ft[1:10])
+#plt.plot(m1_data[5,5])
+#plt.plot(m3_data[5,5])#(np.sqrt(np.power(m3_data[5,5],2)))
+#plt.plot(m1ft)
+#plt.plot(m2ft)
 plt.show()
 '''
