@@ -137,13 +137,21 @@ plt.show()
 
 #here for two
 
-m1_file = open('data/phases/midget_rates_phases_0fr0deg_36px_only_border_ms2.data','r+')
+m1_file = open('data/phases/midget_rates_phases_0fr0deg_36px_only_border.data','r+')
 m1_data = np.load(m1_file)   
 m1_file.close()
 
-p1_file = open('data/phases/parasolic_rates_phases_0fr0deg_36px_only_border_ms2.data','r+')
+p1_file = open('data/phases/parasolic_rates_phases_0fr0deg_36px_only_border.data','r+')
 p1_data = np.load(p1_file)   
 p1_file.close()
+
+p2_file = open('data/phases/parasolic_rates_phases_0fr0deg_36px_only_border_on.data','r+')
+p2_data = np.load(p2_file)   
+p2_file.close()
+
+p3_file = open('data/phases/parasolic_rates_phases_0fr0deg_36px_only_border_on_off.data','r+')
+p3_data = np.load(p3_file)   
+p3_file.close()
 
 out_data = []
 for i in range(2,38):
@@ -179,7 +187,7 @@ ax3.set_ylabel('Gaze direction (arcmin)')
 
 out_data = []
 for i in range(0,12):
-    out_data += [np.sqrt(np.power(p1_data[4,i],2))]
+    out_data += [np.sqrt(np.power(p1_data[i,4],2))]
  
 d_file = open('data/phase_displacement.data','r+')
 disp = np.load(d_file)   
