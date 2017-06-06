@@ -418,19 +418,19 @@ np.save(p_data, p_output)
 p_data.close()
 
 m_data = open('data/'+sim_title+'/midget_rates_'+str(handle_name)+'_on.data','w+')
-np.save(m_data, m_output)
+np.save(m_data, m_output_on)
 m_data.close()
 
 p_data = open('data/'+sim_title+'/parasolic_rates_'+str(handle_name)+'_on.data','w+')
-np.save(p_data, p_output)
+np.save(p_data, p_output_on)
 p_data.close()
 
 m_data = open('data/'+sim_title+'/midget_rates_'+str(handle_name)+'_off.data','w+')
-np.save(m_data, m_output)
+np.save(m_data, m_output_off)
 m_data.close()
 
 p_data = open('data/'+sim_title+'/parasolic_rates_'+str(handle_name)+'_on_off.data','w+')
-np.save(p_data, p_output)
+np.save(p_data, p_output_on_off)
 p_data.close()
 
 #-----------------------------------------------------------------------------------------------PLOT-SOME-STUFF

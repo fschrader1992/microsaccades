@@ -364,8 +364,8 @@ def getSpatFilterParasol(ij):
     pos[0]= midget_dist*pos[0]
     pos[1]= midget_dist*pos[1]
     par_values[ij[0]][ij[1]][f] = sum(itertools.imap(lambda x: spatFilterParasolPx(midgets3d,pos,x,spat_filter_break_radius,par_m_ratio*sigma,alpha,beta), itertools.product(range(i_low,i_ceil),range(j_low,j_ceil))))
-    #par_values_on[ij[0]][ij[1]][f] = sum(itertools.imap(lambda x: spatFilterParasolPx(midgets3d_on,pos,x,spat_filter_break_radius,par_m_ratio*sigma,alpha,beta), itertools.product(range(i_low,i_ceil),range(j_low,j_ceil))))
-    #par_values_on_off[ij[0]][ij[1]][f] = sum(itertools.imap(lambda x: spatFilterParasolPx(midgets3d_on_off,pos,x,spat_filter_break_radius,par_m_ratio*sigma,alpha,beta), itertools.product(range(i_low,i_ceil),range(j_low,j_ceil))))
+    par_values_on[ij[0]][ij[1]][f] = sum(itertools.imap(lambda x: spatFilterParasolPx(midgets3d_on,pos,x,spat_filter_break_radius,par_m_ratio*sigma,alpha,beta), itertools.product(range(i_low,i_ceil),range(j_low,j_ceil))))
+    par_values_on_off[ij[0]][ij[1]][f] = sum(itertools.imap(lambda x: spatFilterParasolPx(midgets3d_on_off,pos,x,spat_filter_break_radius,par_m_ratio*sigma,alpha,beta), itertools.product(range(i_low,i_ceil),range(j_low,j_ceil))))
 
 
 print int(midget_width/4.)
@@ -373,11 +373,11 @@ print int(midget_width/4.)
 for f in range(frame_number):
     print f
     midgets3d = [[mi[f] for mi in midgs] for midgs in temp_filter_vals]   
-    #midgets3d_on = [[mi[f] for mi in midgs] for midgs in temp_filter_vals_on]
-    #midgets3d_on_off = [[mi[f] for mi in midgs] for midgs in temp_filter_vals_off]  
-    #for i in range(len(temp_filter_vals)):
-    #    for j in range(len(temp_filter_vals[0])):
-    #        midgets3d_on_off[i][j] += temp_filter_vals_on[i][j][f]
+    midgets3d_on = [[mi[f] for mi in midgs] for midgs in temp_filter_vals_on]
+    midgets3d_on_off = [[mi[f] for mi in midgs] for midgs in temp_filter_vals_off]  
+    for i in range(len(temp_filter_vals)):
+        for j in range(len(temp_filter_vals[0])):
+            midgets3d_on_off[i][j] += temp_filter_vals_on[i][j][f]
     map(lambda x: getSpatFilterParasol(x), itertools.product(range(parasol_height), range(parasol_width)))
 
 #plt.plot(pgrid[0][:10],pgrid[1][:10],'go')
@@ -418,19 +418,19 @@ np.save(p_data, p_output)
 p_data.close()
 
 m_data = open('data/'+sim_title+'/midget_rates_'+str(handle_name)+'_on.data','w+')
-np.save(m_data, m_output)
+np.save(m_data, m_output_on)
 m_data.close()
 
 p_data = open('data/'+sim_title+'/parasolic_rates_'+str(handle_name)+'_on.data','w+')
-np.save(p_data, p_output)
+np.save(p_data, p_output_on)
 p_data.close()
 
 m_data = open('data/'+sim_title+'/midget_rates_'+str(handle_name)+'_off.data','w+')
-np.save(m_data, m_output)
+np.save(m_data, m_output_off)
 m_data.close()
 
 p_data = open('data/'+sim_title+'/parasolic_rates_'+str(handle_name)+'_on_off.data','w+')
-np.save(p_data, p_output)
+np.save(p_data, p_output_on_off)
 p_data.close()
 
 #-----------------------------------------------------------------------------------------------PLOT-SOME-STUFF

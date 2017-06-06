@@ -22,7 +22,7 @@ degrees = sys.argv[1]
 
 file_location = "video/img_input/spatfreq_0fr0deg" + str(freq) + "spat"
 
-film_length = 400              
+film_length = 400  #2 seconds             
 c=[]
 even = False
 offset = int(half_wl)
@@ -34,26 +34,26 @@ for f in range(film_length):
 
     canvas = np.zeros((image_size, image_size))
     canvas[0,0]=1
-    canvas[:,:] = 0.5*np.cos(float(f)/50.*np.pi-np.pi)+0.5
+    canvas[:,:] = 0.5*np.cos(float(f)/100.*np.pi-np.pi)+0.5
     current_col = int(offset) #there's the problem
     if offset < 0:
-        canvas[:, 0:current_col+stripe_width] = 0.5*np.cos(float(f)/50.*np.pi)+0.5
+        canvas[:, 0:current_col+stripe_width] = 0.5*np.cos(float(f)/100.*np.pi)+0.5
         #canvas[:, current_col+stripe_width] = (f%int(framerate))/framerate
         current_col += stripe_width + gap
     while current_col < image_size:
         if current_col + stripe_width + gap  <= image_size-1:
-            canvas[:, current_col:current_col+stripe_width] = 0.5*np.cos(float(f)/50.*np.pi)+0.5
+            canvas[:, current_col:current_col+stripe_width] = 0.5*np.cos(float(f)/100.*np.pi)+0.5
             #canvas[:, current_col] = 1 - (f%int(framerate))/framerate
             #canvas[:, current_col+stripe_width] = (f%int(framerate))/framerate
             current_col += stripe_width + gap
         elif current_col + stripe_width <= image_size-1:
-            canvas[:, current_col:current_col+stripe_width] = 0.5*np.cos(float(f)/50.*np.pi)+0.5
+            canvas[:, current_col:current_col+stripe_width] = 0.5*np.cos(float(f)/100.*np.pi)+0.5
             #canvas[:, current_col] = 1 - (f%int(framerate))/framerate
             #canvas[:, current_col+stripe_width] = (f%int(framerate))/framerate
             current_col = image_size
         else:
             #canvas[:, current_col] = 1 - (f%int(framerate))/framerate
-            canvas[:, current_col:] = 0.5*np.cos(float(f)/50.*np.pi)+0.5
+            canvas[:, current_col:] = 0.5*np.cos(float(f)/100.*np.pi)+0.5
             current_col = image_size
 
     if f==30:

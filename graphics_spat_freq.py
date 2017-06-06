@@ -129,7 +129,7 @@ ax4.set_xlabel('Time in ms')
 plt.savefig('img/ana/phases.pdf')
 out= 'img/'+ str(now.year) + '_' + str(now.month) + '_' + str(now.day) + '/phases_midget_parasols_' + str(now.hour) + '_' + str(now.minute) + '_' + str(now.second) + '.pdf'
 plt.savefig(out)
-plt.show()
+#plt.show()
 
 #plt.plot(p1_data[5,5])
 #plt.show()
@@ -210,14 +210,14 @@ ax4.set_xlabel('Time in ms')
 plt.savefig('img/ana/phases_ms2.pdf')
 out= 'img/'+ str(now.year) + '_' + str(now.month) + '_' + str(now.day) + '/phases_midget_parasols_ms2_' + str(now.hour) + '_' + str(now.minute) + '_' + str(now.second) + '.pdf'
 plt.savefig(out)
-plt.show()
+#plt.show()
 
 '''
-m1_file = open('data/spat_freq/parasolic_rates_spatfreq_0fr0deg15spat.data','r+')
+m1_file = open('data/spat_freq/midget_rates_spatfreq_0fr0deg10spat.data','r+')
 m1_data = np.load(m1_file)   
 m1_file.close()
 
-m2_file = open('data/spat_freq/parasolic_rates_spatfreq_0fr0deg10spat.data','r+')
+m2_file = open('data/spat_freq/parasolic_rates_spatfreq_0fr0deg10spat_on_off.data','r+')
 m2_data = np.load(m2_file)   
 m2_file.close()
 
@@ -283,4 +283,7 @@ plt.plot(m_ft)
 #plt.plot(m1ft)
 #plt.plot(m2ft)
 plt.show()
-'''
+
+plt.plot(m1_data[10,10])
+plt.plot(m2_data[5,5])
+plt.show()'''

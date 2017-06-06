@@ -13,11 +13,11 @@ do
     mkdir -p ./video/img_input/spatfreq_0fr0deg${sf}spat;
     fi
     echo "folders created"
-    #python image_creation_spatfreq.py $sf
+    python image_creation_spatfreq.py $sf
     echo "images created"
-    cd ./video/img_input/spatfreq_0fr0deg${sf}spat
-    ffmpeg -f image2 -r 24 -i second%3d.png -vcodec mpeg4 -vf scale=240:240 -y ../../spat_freq/spatfreq_0fr0deg${sf}spat.mp4
-    echo "simple video created"
-    cd ../../..
+    #cd ./video/img_input/spatfreq_0fr0deg${sf}spat
+    #ffmpeg -f image2 -r 24 -i second%3d.png -vcodec mpeg4 -vf scale=240:240 -y ../../spat_freq/spatfreq_0fr0deg${sf}spat.mp4
+    #echo "simple video created"
+    #cd ../../..
 done
 echo "done"
