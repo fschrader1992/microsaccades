@@ -1,8 +1,9 @@
 #THIS IS THE PART OF THE NEURAL NETWORK. IT TAKES THE VALUES TO CALCULATE THE POISSONRATES OF THE INPUT NEURONS AND THEN CALCULATES THE NETWORK OUTPUT 
-
+#the unit in space is 1arcmin!
 import pylab as pyl
 import numpy as np
 import cv2
+import sys
 import matplotlib.pyplot as plt
 import nest
 import nest.topology as tp
@@ -11,19 +12,36 @@ from microsaccades_functions import *
 nest.ResetKernel()   # in case we run the script multiple times from iPython
 
 #necessary paramater definitions
-framerate = 30
+#frames = 100 #replaced by motion detectors only
 #synaptic weights for the 
 syn_weight = 0.1
 
 #----------------------------------------------------------------------------INPUT-RATES-FROM-MS_INPUT
+
+extent = 121.
+delay = .02
+
+sim_title = sys.argv[1]
+handle_name = sys.argv[2]
+extent = float(sys.argv[3])
+#extent_x = sys.argv[3]
+#extent_y = sys.argv[4]
+delay = float(sys.argv[4])
+
+extent_x = extent
+extent_y = extent
+center = extent/2.
+center_x = extent_x/2.
+center_y = extent_y/2.
+
 #here needs to be a part that transfers potentials into poisson rates
 #m_file = open('data/midget_values.data','r+')
-m_file = open('data/phases/midget_rates_phases_0fr0deg_36px_only_border.data','r+')
+m_file = open('data/'+sim_title+'/midget_rates_'+handle_name+'.data','r+')
 m_data = np.load(m_file)   
 m_file.close()
 
 #p_file = open('data/parasolic_values.data','r+')
-p_file = open('data/phases/parasolic_rates_phases_0fr0deg_36px_only_border.data','r+')
+p_file = open('data/'+sim_title+'/parasolic_rates_'+handle_name+'.data','r+')
 p_data = np.load(p_file)  
 p_file.close()
 
@@ -41,11 +59,18 @@ print max(maxs)
 
 
 '''
+#for rates 
+mrs = []
+prs=[]
+
 
 #-----------------------------------------------------------------------------------------NETWORK-PART
 #---------------------------------------------------------------------------INITIALIZE-POISSON-NEURONS
 
-nest.SetKernelStatus({'resolution': 0.01})
+nest.SetKernelStatus({'resolution': 0.01,
+                      'overwrite_files': True,
+                      'data_path': 'data/'+sim_title+'/network/'+handle_name+'.data',
+                      'data_prefix': ''})
 
 #set the initial Poisson rate
 rate = 100.
@@ -54,16 +79,16 @@ rate = 100.
 nest.CopyModel("poisson_generator", "var_poisson_generator",{"rate": rate})
 #for the output
 nest.CopyModel("spike_detector", "my_spike_detector",{"withgid": True, "withtime": True})
-#nest.CopyModel('multimeter', 'my_multimeter',{'interval': 0.1, 'withgid': False,'record_from': ['rate']})
+nest.CopyModel('multimeter', 'my_multimeter',{'interval': 0.1, 'withgid': False,'record_from': ['rate']})
 
 #nest.CopyModel("static_synapse", "ex", {"weight" : 0.1})
 #nest.CopyModel("static_synapse", "inh", {"weight" : -0.1})
 
 #----------------------------------------------------------------------------------------CREATE-LAYERS
 
-rows = len(midget_rates)
-cols = len(midget_rates[0])
-print rows, cols
+#rows = len(midget_rates)
+#cols = len(midget_rates[0])
+#print rows, cols
 #rows = 40
 #cols = 40
 
@@ -86,11 +111,14 @@ gm_r_60_pos=[]
 
 #gm_min=(0.,0.)
 #gm_max=(0.,0.)
+print 'length:'
+print len(gm_data),len(gm_data[0])
 for i in range(len(gm_data)):
     for j in range(len(gm_data[0])):
-        gm_pos+=[[0.5*gm_data[i][j][0]+0.25,0.5*gm_data[i][j][1]]+0.25]
-        gm_r_0_pos+=[[0.5*gm_data[i][j][0]+0.5,0.5*gm_data[i][j][1]]+0.25]
-        gm_r_60_pos+=[[0.5*gm_data[i][j][0]+0.5,0.5*gm_data[i][j][1]]+0.25+0.433]
+        mrs+=[midget_rates[i][j]]
+        gm_pos+=[[0.5*gm_data[i][j][0]+0.25,0.5*gm_data[i][j][1]+0.25]]
+        gm_r_0_pos+=[[0.5*gm_data[i][j][0]+0.5,0.5*gm_data[i][j][1]+0.25]]
+        gm_r_60_pos+=[[0.5*gm_data[i][j][0]+0.5,0.5*gm_data[i][j][1]+0.25+0.433]]
         #gm_r_120_pos+=[[gm_data[i][j][0],gm_data[i][j][1]]+0.25+0.433]
         '''
         #currently, this is known in the simulations
@@ -104,13 +132,13 @@ for i in range(len(gm_data)):
             gm_min=(gm_min[0],gm_data[i][j][1])
             #print gm_data[i][j]
         '''
-
+'''
 #print gm_pos
 print 'minimum midgets'
 print gm_min, gm_max[0]+gm_min[0]+10.
 print 'maximum midgets'
 print gm_max, gm_max[1]+gm_min[1]+10.
-        
+'''       
 gp_pos=[]
 gp_r_0_pos=[]
 gp_r_60_pos=[]
@@ -118,6 +146,7 @@ gp_r_60_pos=[]
 
 for i in range(len(gp_data)):
     for j in range(len(gp_data[0])):
+        prs+=[parasolic_rates[i][j]]
         gp_pos+=[[0.5*gp_data[i][j][0]+0.25,0.5*gp_data[i][j][1]+0.25]]
         gp_r_0_pos+=[[0.5*gp_data[i][j][0]+2.25,0.5*gp_data[i][j][1]+0.25]]
         gp_r_60_pos+=[[0.5*gp_data[i][j][0]+1.25,0.5*gp_data[i][j][1]+0.25+1.732]]
@@ -126,40 +155,40 @@ for i in range(len(gp_data)):
 
 #gm_pos=[[np.random.uniform(-0.5,0.5), np.random.uniform(-0.5,0.5)] for j in range(50)]
 #print gm_pos
-#retink that model
 nest.SetDefaults('iaf_psc_alpha',{'I_e' : 374.0})
-midgets = tp.CreateLayer({'extent' : [121.,121.], 'center' : [60.5,60.5], 'positions' : gm_pos, 'elements': 'poisson_generator', 'edge_wrap': True})
-parasolic = tp.CreateLayer({'extent' : [121.,121.], 'center' : [60.5,60.5], 'positions' : gp_pos, 'elements': 'poisson_generator', 'edge_wrap': True})
+
+midgets = tp.CreateLayer({'extent' : [extent_x,extent_y], 'center' : [center_x,center_y], 'positions' : gm_pos, 'elements': 'poisson_generator', 'edge_wrap': True})
+parasolic = tp.CreateLayer({'extent' : [extent_x,extent_y], 'center' : [center_x,center_y], 'positions' : gp_pos, 'elements': 'poisson_generator', 'edge_wrap': True})
 
 #120 degree commented for the moment since two build a basis
 
 #these are direction dependent
-m_reichardt_0_left = tp.CreateLayer({'extent' : [121.,121.], 'center' : [60.5,60.5], 'positions' : gm_pos, 'elements': 'iaf_psc_alpha', 'edge_wrap': True})
-m_reichardt_0_right = tp.CreateLayer({'extent' : [121.,121.], 'center' : [60.5,60.5], 'positions' : gm_pos, 'elements': 'iaf_psc_alpha', 'edge_wrap': True})
-m_reichardt_60_up = tp.CreateLayer({'extent' : [121.,121.], 'center' : [60.5,60.5], 'positions' : gm_pos, 'elements': 'iaf_psc_alpha', 'edge_wrap': True})
-m_reichardt_60_down = tp.CreateLayer({'extent' : [121.,121.], 'center' : [60.5,60.5], 'positions' : gm_pos, 'elements': 'iaf_psc_alpha', 'edge_wrap': True})
-#m_reichardt_120_up = tp.CreateLayer({'extent' : [121.,121.], 'center' : [60.5,60.5], 'positions' : gm_pos, 'elements': 'iaf_psc_alpha', 'edge_wrap': True})
-#m_reichardt_120_down = tp.CreateLayer({'extent' : [121.,121.], 'center' : [60.5,60.5], 'positions' : gm_pos, 'elements': 'iaf_psc_alpha', 'edge_wrap': True})
-p_reichardt_0_left = tp.CreateLayer({'extent' : [121.,121.], 'center' : [60.5,60.5], 'positions' : gp_pos, 'elements': 'iaf_psc_alpha', 'edge_wrap': True})
-p_reichardt_0_right = tp.CreateLayer({'extent' : [121.,121.], 'center' : [60.5,60.5], 'positions' : gp_pos, 'elements': 'iaf_psc_alpha', 'edge_wrap': True})
-p_reichardt_60_up = tp.CreateLayer({'extent' : [121.,121.], 'center' : [60.5,60.5], 'positions' : gp_pos, 'elements': 'iaf_psc_alpha', 'edge_wrap': True})
-p_reichardt_60_down = tp.CreateLayer({'extent' : [121.,121.], 'center' : [60.5,60.5], 'positions' : gp_pos, 'elements': 'iaf_psc_alpha', 'edge_wrap': True})
-#p_reichardt_120_up = tp.CreateLayer({'extent' : [121.,121.], 'center' : [60.5,60.5], 'positions' : gp_pos, 'elements': 'iaf_psc_alpha', 'edge_wrap': True})
-#p_reichardt_120_down = tp.CreateLayer({'extent' : [121.,121.], 'center' : [60.5,60.5], 'positions' : gp_pos, 'elements': 'iaf_psc_alpha', 'edge_wrap': True})
+m_reichardt_0_left = tp.CreateLayer({'extent' : [extent_x,extent_y], 'center' : [center_x,center_y], 'positions' : gm_pos, 'elements': 'iaf_psc_alpha', 'edge_wrap': True})
+m_reichardt_0_right = tp.CreateLayer({'extent' : [extent_x,extent_y], 'center' : [center_x,center_y], 'positions' : gm_pos, 'elements': 'iaf_psc_alpha', 'edge_wrap': True})
+m_reichardt_60_up = tp.CreateLayer({'extent' : [extent_x,extent_y], 'center' : [center_x,center_y], 'positions' : gm_pos, 'elements': 'iaf_psc_alpha', 'edge_wrap': True})
+m_reichardt_60_down = tp.CreateLayer({'extent' : [extent_x,extent_y], 'center' : [center_x,center_y], 'positions' : gm_pos, 'elements': 'iaf_psc_alpha', 'edge_wrap': True})
+#m_reichardt_120_up = tp.CreateLayer({'extent' : [extent_x,extent_y], 'center' : [center_x,center_y], 'positions' : gm_pos, 'elements': 'iaf_psc_alpha', 'edge_wrap': True})
+#m_reichardt_120_down = tp.CreateLayer({'extent' : [extent_x,extent_y], 'center' : [center_x,center_y], 'positions' : gm_pos, 'elements': 'iaf_psc_alpha', 'edge_wrap': True})
+p_reichardt_0_left = tp.CreateLayer({'extent' : [extent_x,extent_y], 'center' : [center_x,center_y], 'positions' : gp_pos, 'elements': 'iaf_psc_alpha', 'edge_wrap': True})
+p_reichardt_0_right = tp.CreateLayer({'extent' : [extent_x,extent_y], 'center' : [center_x,center_y], 'positions' : gp_pos, 'elements': 'iaf_psc_alpha', 'edge_wrap': True})
+p_reichardt_60_up = tp.CreateLayer({'extent' : [extent_x,extent_y], 'center' : [center_x,center_y], 'positions' : gp_pos, 'elements': 'iaf_psc_alpha', 'edge_wrap': True})
+p_reichardt_60_down = tp.CreateLayer({'extent' : [extent_x,extent_y], 'center' : [center_x,center_y], 'positions' : gp_pos, 'elements': 'iaf_psc_alpha', 'edge_wrap': True})
+#p_reichardt_120_up = tp.CreateLayer({'extent' : [extent_x,extent_y], 'center' : [center_x,center_y], 'positions' : gp_pos, 'elements': 'iaf_psc_alpha', 'edge_wrap': True})
+#p_reichardt_120_down = tp.CreateLayer({'extent' : [extent_x,extent_y], 'center' : [center_x,center_y], 'positions' : gp_pos, 'elements': 'iaf_psc_alpha', 'edge_wrap': True})
 
 #react to motion in both directions
-m_reichardt_0 = tp.CreateLayer({'extent' : [121.,121.], 'center' : [60.5,60.5], 'positions' : gm_pos, 'elements': 'iaf_psc_alpha', 'edge_wrap': True})
-m_reichardt_60 = tp.CreateLayer({'extent' : [121.,121.], 'center' : [60.5,60.5], 'positions' : gm_pos, 'elements': 'iaf_psc_alpha', 'edge_wrap': True})
-#m_reichardt_120 = tp.CreateLayer({'extent' : [121.,121.], 'center' : [60.5,60.5], 'positions' : gm_pos, 'elements': 'iaf_psc_alpha', 'edge_wrap': True})
-p_reichardt_0 = tp.CreateLayer({'extent' : [121.,121.], 'center' : [60.5,60.5], 'positions' : gp_pos, 'elements': 'iaf_psc_alpha', 'edge_wrap': True})
-p_reichardt_60 = tp.CreateLayer({'extent' : [121.,121.], 'center' : [60.5,60.5], 'positions' : gp_pos, 'elements': 'iaf_psc_alpha', 'edge_wrap': True})
-#p_reichardt_120 = tp.CreateLayer({'extent' : [121.,121.], 'center' : [60.5,60.5], 'positions' : gp_pos, 'elements': 'iaf_psc_alpha', 'edge_wrap': True})
+m_reichardt_0 = tp.CreateLayer({'extent' : [extent_x,extent_y], 'center' : [center_x,center_y], 'positions' : gm_r_0_pos, 'elements': 'iaf_psc_alpha', 'edge_wrap': True})
+m_reichardt_60 = tp.CreateLayer({'extent' : [extent_x,extent_y], 'center' : [center_x,center_y], 'positions' : gp_r_60_pos, 'elements': 'iaf_psc_alpha', 'edge_wrap': True})
+#m_reichardt_120 = tp.CreateLayer({'extent' : [extent_x,extent_y], 'center' : [center_x,center_y], 'positions' : gm_pos, 'elements': 'iaf_psc_alpha', 'edge_wrap': True})
+p_reichardt_0 = tp.CreateLayer({'extent' : [125.,125.], 'center' : [center_x,center_y], 'positions' : gp_r_0_pos, 'elements': 'iaf_psc_alpha', 'edge_wrap': True})
+p_reichardt_60 = tp.CreateLayer({'extent' : [extent_x,extent_y], 'center' : [center_x,center_y], 'positions' : gp_r_60_pos, 'elements': 'iaf_psc_alpha', 'edge_wrap': True})
+#p_reichardt_120 = tp.CreateLayer({'extent' : [extent_x,extent_y], 'center' : [center_x,center_y], 'positions' : gp_pos, 'elements': 'iaf_psc_alpha', 'edge_wrap': True})
 
 '''
-motion_left = tp.CreateLayer({'extent' : [121.,121.], 'center' : [60.5,60.5], 'positions' : gm_pos, 'elements': 'iaf_psc_alpha', 'edge_wrap': True})
-motion_right = tp.CreateLayer({'extent' : [121.,121.], 'center' : [60.5,60.5], 'positions' : gm_pos, 'elements': 'iaf_psc_alpha', 'edge_wrap': True})
-motion_up = tp.CreateLayer({'extent' : [121.,121.], 'center' : [60.5,60.5], 'positions' : gm_pos, 'elements': 'iaf_psc_alpha', 'edge_wrap': True})
-motion_down = tp.CreateLayer({'extent' : [121.,121.], 'center' : [60.5,60.5], 'positions' : gm_pos, 'elements': 'iaf_psc_alpha', 'edge_wrap': True})
+motion_left = tp.CreateLayer({'extent' : [extent_x,extent_y], 'center' : [center_x,center_y], 'positions' : gm_pos, 'elements': 'iaf_psc_alpha', 'edge_wrap': True})
+motion_right = tp.CreateLayer({'extent' : [extent_x,extent_y], 'center' : [center_x,center_y], 'positions' : gm_pos, 'elements': 'iaf_psc_alpha', 'edge_wrap': True})
+motion_up = tp.CreateLayer({'extent' : [extent_x,extent_y], 'center' : [center_x,center_y], 'positions' : gm_pos, 'elements': 'iaf_psc_alpha', 'edge_wrap': True})
+motion_down = tp.CreateLayer({'extent' : [extent_x,extent_y], 'center' : [center_x,center_y], 'positions' : gm_pos, 'elements': 'iaf_psc_alpha', 'edge_wrap': True})
 '''
 #think about distances etc
 #tp.PlotLayer(midgets)
@@ -167,31 +196,37 @@ motion_down = tp.CreateLayer({'extent' : [121.,121.], 'center' : [60.5,60.5], 'p
 #tp.PlotLayer(reichardt_left)
 #plt.show()
 
-out_m = tp.CreateLayer({'extent' : [121.,121.], 'center' : [60.5,60.5], 'positions' : gm_pos, 'elements': 'my_spike_detector'})
-out_p = tp.CreateLayer({'extent' : [121.,121.], 'center' : [60.5,60.5], 'positions' : gp_pos, 'elements': 'my_spike_detector'})
+out_m = tp.CreateLayer({'extent' : [extent_x,extent_y], 'center' : [center_x,center_y], 'positions' : gm_pos, 'elements': 'my_spike_detector'})
+out_p = tp.CreateLayer({'extent' : [extent_x,extent_y], 'center' : [center_x,center_y], 'positions' : gp_pos, 'elements': 'my_spike_detector'})
+out_m_multi = tp.CreateLayer({'extent' : [extent_x,extent_y], 'center' : [center_x,center_y], 'positions' : gm_pos, 'elements': 'my_multimeter'})
+out_p_multi = tp.CreateLayer({'extent' : [extent_x,extent_y], 'center' : [center_x,center_y], 'positions' : gp_pos, 'elements': 'my_multimeter'})
+out_m_r_0 = tp.CreateLayer({'extent' : [extent_x,extent_y], 'center' : [center_x,center_y], 'positions' : gm_r_0_pos, 'elements': 'my_spike_detector'})
+out_m_r_60 = tp.CreateLayer({'extent' : [extent_x,extent_y], 'center' : [center_x,center_y], 'positions' : gm_r_60_pos, 'elements': 'my_spike_detector'})
+out_p_r_0 = tp.CreateLayer({'extent' : [125.,125.], 'center' : [center_x,center_y], 'positions' : gp_r_0_pos, 'elements': 'my_spike_detector'})
+out_p_r_60 = tp.CreateLayer({'extent' : [extent_x,extent_y], 'center' : [center_x,center_y], 'positions' : gp_r_60_pos, 'elements': 'my_spike_detector'})
 #out = tp.CreateLayer({'rows': rows, 'columns': cols, 'extent': [float(cols),float(rows)],'elements': 'my_spike_detector'})
 #out_multi = tp.CreateLayer({'rows': rows, 'columns': cols, 'extent': [float(cols),float(rows)],'elements': 'my_multimeter'})
 
 #-----------------------------------------------------------------------------------CREATE-CONNECTIONS
 #connections to left/right half of Reichardt detector
-m_r_0_left_conndict = {'connection_type' : 'convergent','mask' : {'rectangular' : {'lower_left' : [-0.6,-0.1], 'upper_right' : [0.1,0.1]}}, 'delays' : {'linear' : {'c' : .1, 'a' : .02}}}
-m_r_0_right_conndict = {'connection_type' : 'convergent','mask' : {'rectangular' : {'lower_left' : [-0.1,-0.1], 'upper_right' : [0.1,0.6]}}, 'delays' : {'linear' : {'c' : .1, 'a' : .02}}}
-m_r_60_up_conndict = {'connection_type' : 'convergent','mask' : {'rectangular' : {'lower_left' : [-0.5,-0.5], 'upper_right' : [0.5,0.5]}, 'anchor' : [0.25,0.433]}, 'delays' : {'linear' : {'c' : .1, 'a' : .02}}}
-m_r_60_down_conndict = {'connection_type' : 'convergent','mask' : {'rectangular' : {'lower_left' : [-0.5,-0.5], 'upper_right' : [0.5,0.5]}, 'anchor' : [-0.25,-0.433]}, 'delays' : {'linear' : {'c' : .1, 'a' : .02}}}
-p_r_0_left_conndict = {'connection_type' : 'convergent','mask' : {'rectangular' : {'lower_left' : [-2.1,-0.1], 'upper_right' : [0.1,0.1]}}, 'delays' : {'linear' : {'c' : .1, 'a' : .02}}}
-p_r_0_right_conndict = {'connection_type' : 'convergent','mask' : {'rectangular' : {'lower_left' : [-0.1,-0.1], 'upper_right' : [0.1,2.1]}}, 'delays' : {'linear' : {'c' : .1, 'a' : .02}}}
-p_r_60_up_conndict = {'connection_type' : 'convergent','mask' : {'rectangular' : {'lower_left' : [-2.,-2.], 'upper_right' : [2.,2.]}, 'anchor' : [1.,1.732]}, 'delays' : {'linear' : {'c' : .1, 'a' : .02}}}
-p_r_60_down_conndict = {'connection_type' : 'convergent','mask' : {'rectangular' : {'lower_left' : [-2.,-2.], 'upper_right' : [2.,2.]}, 'anchor' : [-1.,-1.732]}, 'delays' : {'linear' : {'c' : .1, 'a' : .02}}}
+m_r_0_left_conndict = {'connection_type' : 'convergent','mask' : {'rectangular' : {'lower_left' : [-0.6,-0.1], 'upper_right' : [0.1,0.1]}}, 'delays' : {'linear' : {'c' : .1, 'a' : delay}}}
+m_r_0_right_conndict = {'connection_type' : 'convergent','mask' : {'rectangular' : {'lower_left' : [-0.1,-0.1], 'upper_right' : [0.1,0.6]}}, 'delays' : {'linear' : {'c' : .1, 'a' : delay}}}
+m_r_60_up_conndict = {'connection_type' : 'convergent','mask' : {'rectangular' : {'lower_left' : [-0.5,-0.5], 'upper_right' : [0.5,0.5]}, 'anchor' : [0.25,0.433]}, 'delays' : {'linear' : {'c' : .1, 'a' : delay}}}
+m_r_60_down_conndict = {'connection_type' : 'convergent','mask' : {'rectangular' : {'lower_left' : [-0.5,-0.5], 'upper_right' : [0.5,0.5]}, 'anchor' : [-0.25,-0.433]}, 'delays' : {'linear' : {'c' : .1, 'a' : delay}}}
+p_r_0_left_conndict = {'connection_type' : 'convergent','mask' : {'rectangular' : {'lower_left' : [-2.1,-0.1], 'upper_right' : [0.1,0.1]}}, 'delays' : {'linear' : {'c' : .1, 'a' : delay}}}
+p_r_0_right_conndict = {'connection_type' : 'convergent','mask' : {'rectangular' : {'lower_left' : [-0.1,-0.1], 'upper_right' : [0.1,2.1]}}, 'delays' : {'linear' : {'c' : .1, 'a' : delay}}}
+p_r_60_up_conndict = {'connection_type' : 'convergent','mask' : {'rectangular' : {'lower_left' : [-2.,-2.], 'upper_right' : [2.,2.]}, 'anchor' : [1.,1.732]}, 'delays' : {'linear' : {'c' : .1, 'a' : delay}}}
+p_r_60_down_conndict = {'connection_type' : 'convergent','mask' : {'rectangular' : {'lower_left' : [-2.,-2.], 'upper_right' : [2.,2.]}, 'anchor' : [-1.,-1.732]}, 'delays' : {'linear' : {'c' : .1, 'a' : delay}}}
 
 #connections of left/right half to just motion sensitive Reichardt detector
-m_r_0_left_r_0_conndict = {'connection_type' : 'convergent','mask' : {'rectangular' : {'lower_left' : [-0.5,-0.5], 'upper_right' : [0.5,0.5]}} } #'synapse_model' : 'ex'}
-m_r_0_right_r_0_conndict = {'connection_type' : 'convergent','mask' : {'rectangular' : {'lower_left' : [-0.5,-0.5], 'upper_right' : [0.5,0.5]}} } #'synapse_model' : 'ex'}
-m_r_60_up_r_60_conndict = {'connection_type' : 'convergent','mask' : {'rectangular' : {'lower_left' : [-0.5,-0.5], 'upper_right' : [0.5,0.5]}} } #'synapse_model' : 'ex'}
-m_r_60_down_r_60_conndict = {'connection_type' : 'convergent','mask' : {'rectangular' : {'lower_left' : [-0.5,-0.5], 'upper_right' : [0.5,0.5]}} } #'synapse_model' : 'ex'}
-p_r_0_left_r_0_conndict = {'connection_type' : 'convergent','mask' : {'rectangular' : {'lower_left' : [-1.25,-2.], 'upper_right' : [1.25,2.]}} } #'synapse_model' : 'ex'}
-p_r_0_right_r_0_conndict = {'connection_type' : 'convergent','mask' : {'rectangular' : {'lower_left' : [-1.25,-2.], 'upper_right' : [1.25,2.]}} } #'synapse_model' : 'ex'}
-p_r_60_up_r_60_conndict = {'connection_type' : 'convergent','mask' : {'rectangular' : {'lower_left' : [-1.25,-2.], 'upper_right' : [1.25,2.]}} } #'synapse_model' : 'ex'}
-p_r_60_down_r_60_conndict = {'connection_type' : 'convergent','mask' : {'rectangular' : {'lower_left' : [-1.25,-2.], 'upper_right' : [1.25,2.]}} } #'synapse_model' : 'ex'}
+m_r_0_left_r_0_conndict = {'connection_type' : 'convergent','mask' : {'rectangular' : {'lower_left' : [-0.1,-0.1], 'upper_right' : [0.3,0.1]}} } #'synapse_model' : 'ex'}
+m_r_0_right_r_0_conndict = {'connection_type' : 'convergent','mask' : {'rectangular' : {'lower_left' : [-0.3,-0.1], 'upper_right' : [0.1,0.1]}} } #'synapse_model' : 'ex'}
+m_r_60_up_r_60_conndict = {'connection_type' : 'convergent','mask' : {'rectangular' : {'lower_left' : [-0.3,-0.5], 'upper_right' : [0.1,0.1]}} } #'synapse_model' : 'ex'}
+m_r_60_down_r_60_conndict = {'connection_type' : 'convergent','mask' : {'rectangular' : {'lower_left' : [-0.1,-0.1], 'upper_right' : [0.3,0.5]}} } #'synapse_model' : 'ex'}
+p_r_0_left_r_0_conndict = {'connection_type' : 'convergent','mask' : {'rectangular' : {'lower_left' : [-0.1,-0.1], 'upper_right' : [1.1,20.1]}} } #'synapse_model' : 'ex'}
+p_r_0_right_r_0_conndict = {'connection_type' : 'convergent','mask' : {'rectangular' : {'lower_left' : [-1.1,-0.1], 'upper_right' : [0.1,0.1]}} } #'synapse_model' : 'ex'}
+p_r_60_up_r_60_conndict = {'connection_type' : 'convergent','mask' : {'rectangular' : {'lower_left' : [-1.25,-1.], 'upper_right' : [0.1,0.1]}} } #'synapse_model' : 'ex'}
+p_r_60_down_r_60_conndict = {'connection_type' : 'convergent','mask' : {'rectangular' : {'lower_left' : [-0.1,-0.1], 'upper_right' : [1.1,1.]}} } #'synapse_model' : 'ex'}
 
 '''
 #left commented for the moment
@@ -206,54 +241,60 @@ m_r_ver_motion_down_conndict = {'connection_type' : 'convergent','mask' : {'rect
 #par_motion_up_conndict = {'connection_type' : 'convergent','mask' : {'rectangular' : {'lower_left' : [-2.,0.], 'upper_right' : [0.1,0.1]}}, 'delays' : {'linear' : {'c' : .1, 'a' : .02}}, } #'synapse_model' : 'inh'}
 #par_motion_down_conndict = {'connection_type' : 'convergent','mask' : {'rectangular' : {'lower_left' : [0.,0.], 'upper_right' : [2.1,0.1]}}, 'delays' : {'linear' : {'c' : .1, 'a' : .02}}, } #'synapse_model' : 'inh'}
 
-out_conndict = {'connection_type' : 'convergent'}
+out_conndict = {'connection_type' : 'convergent','mask' : {'rectangular' : {'lower_left' : [-0.1,-0.1], 'upper_right' : [0.1,0.1]}}}
 
-tp.ConnectLayers(midgets,reichardt_left,r_left_conndict)
-tp.ConnectLayers(midgets,reichardt_right,r_right_conndict)
-tp.ConnectLayers(midgets,reichardt_up,r_up_conndict)
-tp.ConnectLayers(midgets,reichardt_down,r_down_conndict)
-tp.ConnectLayers(reichardt_left,reichardt_horizontal,r_left_hor_conndict)
-tp.ConnectLayers(reichardt_right,reichardt_horizontal,r_right_hor_conndict)
-tp.ConnectLayers(reichardt_up,reichardt_vertical,r_up_ver_conndict)
-tp.ConnectLayers(reichardt_down,reichardt_vertical,r_down_ver_conndict)
-tp.ConnectLayers(reichardt_horizontal,motion_left,r_hor_motion_left_conndict)
-tp.ConnectLayers(reichardt_horizontal,motion_right,r_hor_motion_right_conndict)
-tp.ConnectLayers(reichardt_vertical,motion_up,r_ver_motion_up_conndict)
-tp.ConnectLayers(reichardt_vertical,motion_down,r_ver_motion_down_conndict)
-tp.ConnectLayers(parasolic,motion_left,par_motion_left_conndict)
-tp.ConnectLayers(parasolic,motion_right,par_motion_right_conndict)
-tp.ConnectLayers(parasolic,motion_up,par_motion_up_conndict)
-tp.ConnectLayers(parasolic,motion_down,par_motion_down_conndict)
-tp.ConnectLayers(midgets,m_out,out_conndict)
-tp.ConnectLayers(parasolic,p_out,out_conndict)
-#tp.ConnectLayers(motion_left,out,out_conndict)
-'''
+#connect them
+
+tp.ConnectLayers(midgets,m_reichardt_0_left,m_r_0_left_conndict)
+tp.ConnectLayers(midgets,m_reichardt_0_right,m_r_0_right_conndict)
+tp.ConnectLayers(midgets,m_reichardt_60_up,m_r_60_up_conndict)
+tp.ConnectLayers(midgets,m_reichardt_60_down,m_r_60_down_conndict)
+
+tp.ConnectLayers(parasolic,p_reichardt_0_left,p_r_0_left_conndict)
+tp.ConnectLayers(parasolic,p_reichardt_0_right,p_r_0_right_conndict)
+tp.ConnectLayers(parasolic,p_reichardt_60_up,p_r_60_up_conndict)
+tp.ConnectLayers(parasolic,p_reichardt_60_down,p_r_60_down_conndict)
+
+tp.ConnectLayers(m_reichardt_0_left,m_reichardt_0,m_r_0_left_r_0_conndict)
+tp.ConnectLayers(m_reichardt_0_right,m_reichardt_0,m_r_0_right_r_0_conndict)
+tp.ConnectLayers(m_reichardt_60_up,m_reichardt_60,m_r_60_up_r_60_conndict)
+tp.ConnectLayers(m_reichardt_60_down,m_reichardt_60,m_r_60_down_r_60_conndict)
+
+tp.ConnectLayers(p_reichardt_0_left,p_reichardt_0,p_r_0_left_r_0_conndict)
+tp.ConnectLayers(p_reichardt_0_right,p_reichardt_0,p_r_0_right_r_0_conndict)
+tp.ConnectLayers(p_reichardt_60_up,p_reichardt_60,p_r_60_up_r_60_conndict)
+tp.ConnectLayers(p_reichardt_60_down,p_reichardt_60,p_r_60_down_r_60_conndict)
+
+tp.ConnectLayers(midgets,out_m,out_conndict)
+tp.ConnectLayers(parasolic,out_p,out_conndict)
+tp.ConnectLayers(midgets,out_m_multi,out_conndict)
+tp.ConnectLayers(parasolic,out_p_multi,out_conndict)
+tp.ConnectLayers(m_reichardt_0,out_m_r_0,out_conndict)
+tp.ConnectLayers(p_reichardt_0,out_p_r_0,out_conndict)
+
+
+
+
 #-------------------------------------------------------------------------------------------SIMULATION
-for f in range(3):#len(midget_rates[0][0])):
-    #reset rates
-    for row in range(rows):
-        for col in range(cols):
-            nest.SetStatus(tp.GetElement(midgets,[row,col]), {'rate': midget_rates[row][col][f]})
-            nest.SetStatus(tp.GetElement(parasolic,[int(float(row)/4.),int(float(col)/4.)]), {'rate': parasolic_rates[int(float(row)/4.)][int(float(col)/4.)][f]})
-    #run simulation
+MIDs = nest.GetNodes(midgets)
+PIDs = nest.GetNodes(parasolic)
+
+for f in range(10):#frames):
     print f
-    nest.Simulate(2)#int(1/framerate))
-
-s = tp.GetElement(out,[0,30])
-#mult = tp.GetElement(out_multi,[0,0])
-
-dSD = nest.GetStatus(s,keys="events")[0]
-evs = dSD["senders"]
-ts = dSD["times"]
-pyl.figure(2)
-pyl.plot(ts, evs, ".")
-pyl.show()
+    #reset rates
+    for n in range(len(MIDs[0])):
+        nest.SetStatus([MIDs[0][n]], {'rate': mrs[n][f]})
+    for n in range(len(PIDs[0])):
+        nest.SetStatus([PIDs[0][n]], {'rate': prs[n][f]})
+    #run simulation
+    nest.Simulate(1)
 
 
+#-----------------------------------------------------------------------SAVING-AND-PRINTING-THE-OUTPUT
 
-#----------------------------------------------------------------------------------PRINTING-THE-OUTPUT
-s = tp.GetElement(out,[0,0])
-mult = tp.GetElement(out_multi,[0,0])
+
+s = tp.FindNearestElement(out_m,[12.,12.])
+mult = tp.FindNearestElement(out_m_multi,[12.,12.])
 
 dSD = nest.GetStatus(s,keys="events")[0]
 evs = dSD["senders"]
@@ -279,4 +320,3 @@ plt.hist(np.diff(sp), bins=np.arange(0., 1.005, 0.02),
             histtype='step', color='b')
 plt.title('ISI histogram')
 plt.show()
-'''

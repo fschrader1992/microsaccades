@@ -139,7 +139,7 @@ par_m_ratio = 4. #2arcmin center field sigma from paper
 spat_filter_break_radius = 6 #filter radius in px 
 
 #subsequent values
-midget_dist = px_midget_ratio*px_dist #0.5
+midget_dist = px_midget_ratio#1, rest gone, since unit is 1px #*px_dist #0.5
 
 #we actually need to calculate the values of each temporal filter just once
 temp_filter_on = tempFilter(40,dt,on_tau1,on_tau2,on_p) #mayber 120, compare to paper --> 200 in Garrett's code!      
@@ -177,7 +177,13 @@ def spatFilterPx(mult_list,center,kl,r_break,sigma,alpha,beta):
     klv_w = 0
     klv_h = 0
     new_kl0,new_kl1 = kl
+    kl_pos = float(kl[0]),float(kl[1])
     
+    dis_x = (center[0]-kl_pos[0])
+    dis_y = (center[1]-kl_pos[1])
+    #here, before shift to get value
+    dist=np.sqrt(dis_x*dis_x+dis_y*dis_y)
+        
     if kl[0] >= ml_h:
         new_kl0 = kl[0] - ml_h
         klv_h = height/px_midget_ratio
@@ -192,11 +198,10 @@ def spatFilterPx(mult_list,center,kl,r_break,sigma,alpha,beta):
         klv_w = -width/px_midget_ratio
         
     kl = (new_kl0,new_kl1)
-    grid_shift = (midget_dist*klv_h,midget_dist*klv_w)
+    #grid_shift = (midget_dist*klv_h,midget_dist*klv_w)
     
     mult_val = mult_list[kl[0]][kl[1]]
-    kl = float(kl[0])*px_dist,float(kl[1])*px_dist
-    dist = np.sqrt(sum(itertools.imap(lambda x,y,z: (x-y-z)*(x-y-z), center, kl, grid_shift)))
+    
     #make it a real circle
     if dist <= r_break:
         add_val = mult_val*spatialFilter(dist,0,sigma,alpha,beta)
@@ -230,7 +235,7 @@ def getSpatFilter(ij):
     i_ceil = int(pos_i*px_midget_ratio+spat_filter_break_radius/0.866)+1
     j_low = int(pos_j*px_midget_ratio-spat_filter_break_radius) # -> all j with dist < r
     j_ceil = int(pos_j*px_midget_ratio+spat_filter_break_radius)+1
-    
+
     #pos_i=midget_dist*pos_i
     #pos_j=midget_dist*pos_j
     
@@ -284,7 +289,7 @@ for i in range(midget_height):
         pop = temp_midget_px4d.pop
         for f in range(frame_number):
             temp_midget_px4d.insert(0, float(midget_pixels4d[i][j][f]))
-            if f > 40:
+            if f > 200:
                 pop()
             #add a new entry to the time list of the pixel i,j
             trs = sum(itertools.imap(lambda x,y: x*y, temp_midget_px4d, temp_filter_on))
@@ -330,13 +335,24 @@ def spatFilterParasolPx(mult_list,center,kl,r_break,sigma,alpha,beta):
         klv_w = -width/px_midget_ratio
     kl = (new_kl0,new_kl1)
 
-    grid_shift = (midget_dist*klv_h,midget_dist*klv_w)
+    grid_shift = (midget_dist*klv_w,midget_dist*klv_h)
     
     #print kl
     #print kl[0],kl[1]
     mult_val = mult_list[kl[0]][kl[1]]
     kl_val = midget_grid[kl[0]][kl[1]] 
-    dist = np.sqrt(sum(itertools.imap(lambda x,y,z: (x-y-z)*(x-y-z), center, kl_val, grid_shift)))
+    
+    dis_x = (center[0]-kl_val[0])
+    dis_y = (center[1]-kl_val[1])
+    dis_x_gs = (center[0]-kl_val[0]-grid_shift[0])
+    dis_y_gs = (center[1]-kl_val[1]-grid_shift[1])
+    
+    #dist = np.sqrt(sum(itertools.imap(lambda x,y,z: (x-y-z)*(x-y-z), center, kl_val, grid_shift)))
+    dist=np.sqrt((center[0]-kl_val[0]-grid_shift[0])*(center[0]-kl_val[0]-grid_shift[0])+(center[1]-kl_val[1]-grid_shift[1])*(center[1]-kl_val[1]-grid_shift[1]))
+    
+    #if f==1:
+    #    print 'dist: '+str(dist) +' dis_x: '+str(dis_x)+' dis_y: '+str(dis_y)+' dis_x_gs: '+str(dis_x_gs)+' dis_y_gs: '+str(dis_y_gs)+ ' kl: ' +str(kl_val)+' center: ' +str(center) + ' gs: ' +str(grid_shift)
+        
     #make it a real circle
     if dist <= r_break:
         add_val = mult_val*spatialFilter(dist,0,sigma,alpha,beta)
@@ -386,7 +402,7 @@ def getSpatFilterParasol(ij):
     i_ceil = int(par_m_ratio*ij[0]+move/0.866)+1  
     j_low = int(par_m_ratio*ij[1]-move) # -> all j with dist < r
     j_ceil = int(par_m_ratio*ij[1]+move)+1
-
+    
     #print j_low,j_ceil
     if f==0:
         pgrid[0] += [pos_j]
@@ -424,6 +440,7 @@ p_pos_data.close()
 #plt.plot(pgrid[0][55:60],pgrid[1][55:60],'go')
 #plt.plot(pgrid[0][105:110],pgrid[1][105:110],'go')
 #plt.plot(pgrid[0][75:82],pgrid[1][75:82],'go')
+#plt.plot(pgrid[1],pgrid[0],'go')
 #plt.savefig('img/grid_large_new.pdf')
 #plt.show()
 
