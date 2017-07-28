@@ -13,11 +13,11 @@ rect_size = 110. #size of inner radius
 vel = 0.06 #velocity is 30 arcmin/s -> 60px/1000ms
 
 suff = sys.argv[1]
-vel_on = sys.argv[2]
+vel_on = int(sys.argv[2])
 angle = sys.argv[3]
-rem_on = sys.argv[4]
-rect = sys.argv[5]
-cem_on = sys.argv[6]
+rem_on = int(sys.argv[4])
+rect = int(sys.argv[5])
+cem_on = int(sys.argv[6])
 
 direction = float(angle)*np.pi/8. #dot moving direction in arc (get right velocities !)
 
@@ -56,8 +56,8 @@ for f in range(film_length):
     if rem_on==1:
         pos = (pos[0]+tl_y[f],pos[1]+tl_x[f])
     #------------------------------------------
-	
-    #for moving rectangle frame----------------
+    
+    #for randomly moving rectangle frame-------
     if cem_on==1:
         center = (center[0]+tl_y[f],center[1]+tl_x[f])
     #------------------------------------------

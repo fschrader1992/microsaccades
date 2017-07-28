@@ -398,6 +398,11 @@ for f in range(frame_number):
 
 print 'parasols done'
 
+m_pos = np.asarray(midget_grid)
+m_pos_data = open('/home/schrader/Documents/microsaccades/data/'+sim_title+'/m_pos_'+str(handle_name)+'.data','w+')
+np.save(m_pos_data, m_pos)
+m_pos_data.close()
+
 p_pos = np.asarray(parasol_grid)
 p_pos_data = open('/home/schrader/Documents/microsaccades/data/'+sim_title+'/p_pos_'+str(handle_name)+'.data','w+')
 np.save(p_pos_data, p_pos)

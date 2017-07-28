@@ -14,7 +14,7 @@ nest.ResetKernel()   # in case we run the script multiple times from iPython
 #necessary paramater definitions
 #frames = 100 #replaced by motion detectors only
 #synaptic weights for the 
-syn_weight = 0.1
+syn_weight = .1
 
 #----------------------------------------------------------------------------INPUT-RATES-FROM-MS_INPUT
 
@@ -23,14 +23,14 @@ delay = .02
 
 sim_title = sys.argv[1]
 handle_name = sys.argv[2]
-extent = float(sys.argv[3])
-#extent_x = sys.argv[3]
-#extent_y = sys.argv[4]
-delay = float(sys.argv[4])
-
-extent_x = extent
-extent_y = extent
-center = extent/2.
+#extent = float(sys.argv[3])
+extent_x = float(sys.argv[3])
+extent_y = float(sys.argv[4])
+delay = float(sys.argv[5])
+vel = float(sys.argv[6])
+#extent_x = extent
+#extent_y = extent
+#center = extent/2.
 center_x = extent_x/2.
 center_y = extent_y/2.
 
@@ -47,8 +47,8 @@ p_file.close()
 
 midget_rates=poissonRateMidgets(m_data)
 parasolic_rates=poissonRateParasols(p_data)
-'''
-print midget_rates
+
+#print midget_rates
 
 #to check for maximum spike rates in order to adopt conversion of film input
 maxs = []
@@ -56,12 +56,21 @@ for i in range(len(midget_rates)):
     for j in range(len(midget_rates[0])):
        maxs.append(max(midget_rates[i][j]))
 print max(maxs)
+mmr = 400.#max(maxs)
+        
+paxs = []
+for i in range(len(parasolic_rates)):
+    for j in range(len(parasolic_rates[0])):
+       paxs.append(max(parasolic_rates[i][j]))
+print max(paxs)
+pmr = max(paxs)
 
-
-'''
+        
 #for rates 
 mrs = []
 prs=[]
+
+print midget_rates
 
 
 #-----------------------------------------------------------------------------------------NETWORK-PART
@@ -93,12 +102,14 @@ nest.CopyModel('multimeter', 'my_multimeter',{'interval': 0.1, 'withgid': False,
 #cols = 40
 
 #get grid data form previous simulation
-gm_file = open('data/test_vid/m_pos_test_vid.data','r+')
+gm_file = open('data/'+sim_title+'/m_pos_'+handle_name+'.data','r+')
+#gm_file = open('data/test_vid/m_pos_test_vid.data','r+')
 gm_data = np.load(gm_file)  
 gm_file.close()
 gm_data = gm_data.tolist()
 
-gp_file = open('data/test_vid/p_pos_test_vid.data','r+')
+gp_file = open('data/'+sim_title+'/p_pos_'+handle_name+'.data','r+')
+#gp_file = open('data/test_vid/p_pos_test_vid.data','r+')
 gp_data = np.load(gp_file)  
 gp_file.close()
 gp_data = gp_data.tolist()
@@ -115,7 +126,7 @@ print 'length:'
 print len(gm_data),len(gm_data[0])
 for i in range(len(gm_data)):
     for j in range(len(gm_data[0])):
-        mrs+=[midget_rates[i][j]]
+        mrs+=[4000.*midget_rates[i][j]]
         gm_pos+=[[0.5*gm_data[i][j][0]+0.25,0.5*gm_data[i][j][1]+0.25]]
         gm_r_0_pos+=[[0.5*gm_data[i][j][0]+0.5,0.5*gm_data[i][j][1]+0.25]]
         gm_r_60_pos+=[[0.5*gm_data[i][j][0]+0.5,0.5*gm_data[i][j][1]+0.25+0.433]]
@@ -146,7 +157,7 @@ gp_r_60_pos=[]
 
 for i in range(len(gp_data)):
     for j in range(len(gp_data[0])):
-        prs+=[parasolic_rates[i][j]]
+        prs+=[5.*parasolic_rates[i][j]]
         gp_pos+=[[0.5*gp_data[i][j][0]+0.25,0.5*gp_data[i][j][1]+0.25]]
         gp_r_0_pos+=[[0.5*gp_data[i][j][0]+2.25,0.5*gp_data[i][j][1]+0.25]]
         gp_r_60_pos+=[[0.5*gp_data[i][j][0]+1.25,0.5*gp_data[i][j][1]+0.25+1.732]]
@@ -200,12 +211,21 @@ out_m = tp.CreateLayer({'extent' : [extent_x,extent_y], 'center' : [center_x,cen
 out_p = tp.CreateLayer({'extent' : [extent_x,extent_y], 'center' : [center_x,center_y], 'positions' : gp_pos, 'elements': 'my_spike_detector'})
 out_m_multi = tp.CreateLayer({'extent' : [extent_x,extent_y], 'center' : [center_x,center_y], 'positions' : gm_pos, 'elements': 'my_multimeter'})
 out_p_multi = tp.CreateLayer({'extent' : [extent_x,extent_y], 'center' : [center_x,center_y], 'positions' : gp_pos, 'elements': 'my_multimeter'})
+
 out_m_r_0 = tp.CreateLayer({'extent' : [extent_x,extent_y], 'center' : [center_x,center_y], 'positions' : gm_r_0_pos, 'elements': 'my_spike_detector'})
+out_m_r_0_multi = tp.CreateLayer({'extent' : [extent_x,extent_y], 'center' : [center_x,center_y], 'positions' : gm_r_0_pos, 'elements': 'my_multimeter'})
 out_m_r_60 = tp.CreateLayer({'extent' : [extent_x,extent_y], 'center' : [center_x,center_y], 'positions' : gm_r_60_pos, 'elements': 'my_spike_detector'})
+out_m_r_60_multi = tp.CreateLayer({'extent' : [extent_x,extent_y], 'center' : [center_x,center_y], 'positions' : gm_r_60_pos, 'elements': 'my_multimeter'})
+
 out_p_r_0 = tp.CreateLayer({'extent' : [125.,125.], 'center' : [center_x,center_y], 'positions' : gp_r_0_pos, 'elements': 'my_spike_detector'})
+out_p_r_0_multi = tp.CreateLayer({'extent' : [125.,125.], 'center' : [center_x,center_y], 'positions' : gp_r_0_pos, 'elements': 'my_multimeter'})
 out_p_r_60 = tp.CreateLayer({'extent' : [extent_x,extent_y], 'center' : [center_x,center_y], 'positions' : gp_r_60_pos, 'elements': 'my_spike_detector'})
+out_p_r_60_multi = tp.CreateLayer({'extent' : [extent_x,extent_y], 'center' : [center_x,center_y], 'positions' : gp_r_60_pos, 'elements': 'my_multimeter'})
 #out = tp.CreateLayer({'rows': rows, 'columns': cols, 'extent': [float(cols),float(rows)],'elements': 'my_spike_detector'})
 #out_multi = tp.CreateLayer({'rows': rows, 'columns': cols, 'extent': [float(cols),float(rows)],'elements': 'my_multimeter'})
+
+
+
 
 #-----------------------------------------------------------------------------------CREATE-CONNECTIONS
 #connections to left/right half of Reichardt detector
@@ -241,7 +261,7 @@ m_r_ver_motion_down_conndict = {'connection_type' : 'convergent','mask' : {'rect
 #par_motion_up_conndict = {'connection_type' : 'convergent','mask' : {'rectangular' : {'lower_left' : [-2.,0.], 'upper_right' : [0.1,0.1]}}, 'delays' : {'linear' : {'c' : .1, 'a' : .02}}, } #'synapse_model' : 'inh'}
 #par_motion_down_conndict = {'connection_type' : 'convergent','mask' : {'rectangular' : {'lower_left' : [0.,0.], 'upper_right' : [2.1,0.1]}}, 'delays' : {'linear' : {'c' : .1, 'a' : .02}}, } #'synapse_model' : 'inh'}
 
-out_conndict = {'connection_type' : 'convergent','mask' : {'rectangular' : {'lower_left' : [-0.1,-0.1], 'upper_right' : [0.1,0.1]}}}
+out_conndict = {'connection_type' : 'convergent','mask' : {'rectangular' : {'lower_left' : [-0.2,-0.2], 'upper_right' : [0.2,0.2]}}}
 
 #connect them
 
@@ -269,9 +289,16 @@ tp.ConnectLayers(midgets,out_m,out_conndict)
 tp.ConnectLayers(parasolic,out_p,out_conndict)
 tp.ConnectLayers(midgets,out_m_multi,out_conndict)
 tp.ConnectLayers(parasolic,out_p_multi,out_conndict)
+
 tp.ConnectLayers(m_reichardt_0,out_m_r_0,out_conndict)
 tp.ConnectLayers(p_reichardt_0,out_p_r_0,out_conndict)
+tp.ConnectLayers(m_reichardt_0,out_m_r_0_multi,out_conndict)
+#tp.ConnectLayers(p_reichardt_0,out_p_r_0_multi,out_conndict)
 
+#tp.ConnectLayers(m_reichardt_60,out_m_r_60,out_conndict)
+#tp.ConnectLayers(p_reichardt_60,out_p_r_60,out_conndict)
+#tp.ConnectLayers(m_reichardt_60,out_m_r_60_multi,out_conndict)
+#tp.ConnectLayers(p_reichardt_60,out_p_r_60_multi,out_conndict)
 
 
 
@@ -279,7 +306,7 @@ tp.ConnectLayers(p_reichardt_0,out_p_r_0,out_conndict)
 MIDs = nest.GetNodes(midgets)
 PIDs = nest.GetNodes(parasolic)
 
-for f in range(10):#frames):
+for f in range(200,230):#frames):
     print f
     #reset rates
     for n in range(len(MIDs[0])):
@@ -292,31 +319,86 @@ for f in range(10):#frames):
 
 #-----------------------------------------------------------------------SAVING-AND-PRINTING-THE-OUTPUT
 
+store_sp = []
+s_gids = []
+for q in range(120):
+    s = tp.FindNearestElement(out_m_r_0,[float(q),12.])
+    mult = tp.FindNearestElement(out_m_r_0_multi,[float(q),12.])
+    s_gids += [s]
+    
+    dSD = nest.GetStatus(s,keys="events")[0]
+    evs = dSD["senders"]
+    ts = dSD["times"]
+    #pyl.figure(2)
+    #pyl.plot(ts, evs, ".")
+    #pyl.show()
+    
+    if evs.any():
+        ev = nest.GetStatus(mult)[0]['events']
+        t = ev['times']
+        r = ev['rate']
 
-s = tp.FindNearestElement(out_m,[12.,12.])
-mult = tp.FindNearestElement(out_m_multi,[12.,12.])
+        sp = nest.GetStatus(s)[0]['events']['times']
+        plt.subplot(221)
+        h, e = np.histogram(sp, bins=np.arange(0., 31., 30.))
+        store_sp +=[h]
+        #plt.plot(t, r, color='b')
+        #plt.step(e[:-1], h , color='b', where='post')
+        #plt.title('PST histogram and firing rates')
+        #plt.ylabel('Spikes per second')
 
-dSD = nest.GetStatus(s,keys="events")[0]
-evs = dSD["senders"]
-ts = dSD["times"]
-pyl.figure(2)
-pyl.plot(ts, evs, ".")
-pyl.show()
+        #plt.subplot(223)
+        #plt.hist(np.diff(sp), bins=np.arange(0., 1.005, 0.02),
+                    #histtype='step', color='b')
+        #plt.title('ISI histogram')
+        #plt.show()
 
-ev = nest.GetStatus(mult)[0]['events']
-t = ev['times']
-r = ev['rate']
 
-sp = nest.GetStatus(s)[0]['events']['times']
-plt.subplot(221)
-h, e = np.histogram(sp, bins=np.arange(0., 1001., 1.))
-plt.plot(t, r, color='b')
-plt.step(e[:-1], h , color='b', where='post')
-plt.title('PST histogram and firing rates')
-plt.ylabel('Spikes per second')
+max_spikes = max(store_sp)
+print max_spikes
 
-plt.subplot(223)
-plt.hist(np.diff(sp), bins=np.arange(0., 1.005, 0.02),
-            histtype='step', color='b')
-plt.title('ISI histogram')
-plt.show()
+k = (delay,vel,max_spikes)
+ms_file = open('data/mo_det_cal/m_max_spikes.data','a+')
+ms_file.write(str(delay)+' '+ str(vel)+' '+ str(max_spikes[0])+'\n')
+ms_file.close()
+
+for q in range(30):
+    s = tp.FindNearestElement(out_p_r_0,[4.*float(q),12.])
+    mult = tp.FindNearestElement(out_p_r_0_multi,[4.*float(q),12.])
+    s_gids += [s]
+    
+    dSD = nest.GetStatus(s,keys="events")[0]
+    evs = dSD["senders"]
+    ts = dSD["times"]
+    #pyl.figure(2)
+    #pyl.plot(ts, evs, ".")
+    #pyl.show()
+    
+    if evs.any():
+        ev = nest.GetStatus(mult)[0]['events']
+        t = ev['times']
+        r = ev['rate']
+
+        sp = nest.GetStatus(s)[0]['events']['times']
+        plt.subplot(221)
+        h, e = np.histogram(sp, bins=np.arange(0., 31., 30.))
+        store_sp +=[h]
+        #plt.plot(t, r, color='b')
+        #plt.step(e[:-1], h , color='b', where='post')
+        #plt.title('PST histogram and firing rates')
+        #plt.ylabel('Spikes per second')
+
+        #plt.subplot(223)
+        #plt.hist(np.diff(sp), bins=np.arange(0., 1.005, 0.02),
+                    #histtype='step', color='b')
+        #plt.title('ISI histogram')
+        #plt.show()
+
+
+max_spikes = max(store_sp)
+print max_spikes
+
+k = (delay,vel,max_spikes)
+ms_file = open('data/mo_det_cal/p_max_spikes.data','a+')
+ms_file.write(str(delay)+' '+ str(vel)+' '+ str(max_spikes[0])+'\n')
+ms_file.close()
