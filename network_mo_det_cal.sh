@@ -1,27 +1,26 @@
 #!/bin/bash
 #read video name
 
-for i in .01 .1 1 10
+for i in 1 10 #100
 do
+    echo '--- DELAY ${i} STARTS NOW ---'
     date
-    python ms_network.py mo_det_cal mo_det_cal_1fr $i &
-    python ms_network.py mo_det_cal mo_det_cal_2fr $i &
-    python ms_network.py mo_det_cal mo_det_cal_3fr $i &
-    python ms_network.py mo_det_cal mo_det_cal_5fr $i 
+    python ms_network.py mo_det_cal mo_det_cal_1fr 121. 21. $i 1.
+    #python ms_network.py mo_det_cal mo_det_cal_2fr 121. 21. $i 2.
+    #python ms_network.py mo_det_cal mo_det_cal_3fr 121. 21. $i 3.
+    #python ms_network.py mo_det_cal mo_det_cal_5fr 121. 21. $i 5.
 
-    wait
-    echo four files processed
+    echo 'four files processed'
 
-    date
-    python ms_network.py mo_det_cal mo_det_cal_0_5fr $i &
-    python ms_network.py mo_det_cal mo_det_cal_0_2fr $i &
-    python ms_network.py mo_det_cal mo_det_cal_0_1fr $i &
-    python ms_network.py mo_det_cal mo_det_cal_10fr $i &
-    python ms_network.py mo_det_cal mo_det_cal_20fr $i 
+    #python ms_network.py mo_det_cal mo_det_cal_10fr 121. 21. $i 10.
+    #python ms_network.py mo_det_cal mo_det_cal_16fr 121. 21. $i 16.
+    #python ms_network.py mo_det_cal mo_det_cal_20fr 121. 21. $i 20.
+    #python ms_network.py mo_det_cal mo_det_cal_33fr 121. 21. $i 33.
 
-    wait
-    echo five files processed
+    echo '---FINISHED---'
 done
 
 date
+
+python graphics_mo_det_cal.py
 echo done

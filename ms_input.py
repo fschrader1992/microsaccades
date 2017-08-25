@@ -62,7 +62,7 @@ for file in frames:
     for i in range(height):
         for j in range(width):
             pixels4d[i][j]+=[float(gray[i,j])]
-    
+ 
 cv2.destroyAllWindows()
 
 os.chdir("../../..")
@@ -161,6 +161,7 @@ parasol_width = int(width/par_m_ratio)
 print midget_height,midget_width,parasol_height,parasol_width
 
 midget_pixels4d = np.zeros(shape=(midget_height,midget_width,frame_number))
+midget_pixels4d = [[[] for j in range(midget_width)] for i in range(midget_height)]
 
 grid=[[0],[0]]
 m_grid=[[0],[0]]
@@ -169,6 +170,8 @@ pgrid=[[0],[0]]
 midget_grid= [[(0,0) for j in range(midget_width)] for i in range(midget_height)]
 
 #---------------------------------------------------------------------------------------MIDGETS-SPATIAL-FILTERS 
+print '---'
+print 'start of midget part'
 
 def spatFilterPx(center,kl,r_break,sigma,alpha,beta):
 
@@ -185,7 +188,7 @@ def spatFilterPx(center,kl,r_break,sigma,alpha,beta):
     if dist <= r_break:
         spat_filter_value = spatialFilter(dist,0,sigma,alpha,beta)
     else:
-        spat_filter_value = 0
+        spat_filter_value = 0.
     
     return spat_filter_value
     
@@ -201,7 +204,7 @@ def spatFilterPx(center,kl,r_break,sigma,alpha,beta):
     '''
 
 spat_filt_values = [[[] for j in range(midget_width)] for i in range(midget_height)]
-
+'''
 def getSpatFilter(ij):
     
     pos_i = 0.866*ij[0]        #2*cos(30deg)
@@ -244,17 +247,73 @@ def getSpatFilter(ij):
             #print (midget_height+k)%midget_height,(midget_width+l)%midget_width
             pxiq += [pixels3d[(height+k)%height][(width+l)%width]/255.]
    
-        
+    
+    #exchange the order of that, to make it faster
     #spatial filters can allow negative potentials
     midget_pixels4d[ij[0]][ij[1]][f] = sum(itertools.imap(lambda x,y: x*y, spat_filt_values[ij[0]][ij[1]],pxiq))
+'''
 
+def getSpatFilter(ij):
+    
+    if ij[0]%5==0:
+        if ij[1]==0:
+            print ij[0]
+            
+    pos_i = 0.866*ij[0]        #2*cos(30deg)
+    pos_j = ij[1]
+    
+    if ij[0]%2 == 0:
+        pos_j += 0.5  #cos(30deg)
+
+
+    
+    i_low = int(pos_i*px_midget_ratio-spat_filter_break_radius) # -> all j with dist < r
+    i_ceil = int(pos_i*px_midget_ratio+spat_filter_break_radius)+1
+    j_low = int(pos_j*px_midget_ratio-spat_filter_break_radius) # -> all j with dist < r
+    j_ceil = int(pos_j*px_midget_ratio+spat_filter_break_radius)+1
+
+    #pos_i=midget_dist*pos_i
+    #pos_j=midget_dist*pos_j
+    
+    #right, since in opencv (height, width)
+    pos=(pos_i,pos_j)
+    
+    #if f==0:
+    grid[0] += [ij[0]]
+    grid[1] += [ij[1]]
+    m_grid[0] += [pos_j]
+    m_grid[1] += [pos_i]
+    midget_grid[ij[0]][ij[1]] = (pos_j, pos_i) 
+    
+    #create list with numpy arrays here
+    #define length + list beforehand
+    
+    mp=[0. for g in range(frame_number)]
+    q_len = abs((j_ceil-j_low)*(i_ceil-i_low))
+    pxiq = []#0 for q in range(q_len)]
+    
+    for k in range(i_low,i_ceil):
+        for l in range(j_low,j_ceil):
+            spat_filt_values[ij[0]][ij[1]] += [spatFilterPx(pos,(k,l),spat_filter_break_radius,sigma,alpha,beta)]
+            pxiq+=[pixels4d[(height+k)%height][(width+l)%width]]
+
+    #exchange the order of that, to make it faster
+    #spatial filters can allow negative potentials
+    #print mp
+    for q in xrange(q_len):
+        w = spat_filt_values[ij[0]][ij[1]][q]
+        muli = [o/255.*w for o in pxiq[q]]
+        mp = map(lambda w,z: w+z, muli,mp)
+    #print mp
+    midget_pixels4d[ij[0]][ij[1]] = mp
+    #= sum(itertools.imap(lambda x,y: x*y, spat_filt_values[ij[0]][ij[1]],pxiq))
     
 
 #apply the spatial filter 
-for f in range(frame_number):
-    print f
-    pixels3d = [[item[f] for item in pxst] for pxst in pixels4d]      
-    map(lambda x: getSpatFilter(x), itertools.product(range(midget_height),range(midget_width)))
+#for f in range(frame_number):
+#    print f
+#    pixels3d = [[item[f] for item in pxst] for pxst in pixels4d]      
+map(lambda x: getSpatFilter(x), itertools.product(range(midget_height),range(midget_width)))
      
 #pyl.figure()
 #pyl.subplot(121, aspect='equal')
@@ -276,9 +335,11 @@ temp_filter_vals_off = np.zeros(shape=(midget_height,midget_width,frame_number))
 #plt.show()
 #--------------------------------------------------------------------------------------MIDGETS-TEMPORAL-FILTERS
 print '---'
+print 'start of temporal part'
 #now apply the temporal filters: output are two lists for on/off fields
 for i in range(midget_height):
-    print i
+    if i%5==0:
+        print i
     for j in range(midget_width):
         temp_midget_px4d = []
         pop = temp_midget_px4d.pop
@@ -301,6 +362,8 @@ m_output_off = np.asarray(temp_filter_vals_off)
 
 #--------------------------------------------------------------------------------------PARASOLS-SPATIAL-FILTERS
 
+print '---'
+print 'start of parasol part'
 parasol_grid= [[(0,0) for j in range(parasol_width)] for i in range(parasol_height)]
 
 par_values = [[[0. for f in range(frame_number)] for j in range(parasol_width)] for i in range(parasol_height)] 
@@ -339,11 +402,11 @@ def spatFilterParasol(center,kl,r_break,sigma,alpha,beta):
     if dist <= r_break:
         spat_filter_value = spatialFilter(dist,0,sigma,alpha,beta)
     else:
-        spat_filter_value = 0
+        spat_filter_value = 0.
     
     return spat_filter_value
 
-
+''''
 def getSpatFilterParasol(ij):
     
     pos_i = 0.866*par_m_ratio*ij[0]        #2*cos(30deg)
@@ -352,7 +415,7 @@ def getSpatFilterParasol(ij):
     if ij[0]%2 == 0:
         pos_j += par_m_ratio*0.5 
 
-    move = (par_m_ratio+2.)*spat_filter_break_radius/px_midget_ratio
+    move = (par_m_ratio)*spat_filter_break_radius/px_midget_ratio
     
     i_low = int(par_m_ratio*ij[0]-move/0.866) # -> all j with dist < r
     i_ceil = int(par_m_ratio*ij[0]+move/0.866)+1  
@@ -362,15 +425,39 @@ def getSpatFilterParasol(ij):
     pos = (pos_j, pos_i) 
     
     #print j_low,j_ceil
-    if f==0:
-        pgrid[0] += [pos_j]
-        pgrid[1] += [pos_i]
-        parasol_grid[ij[0]][ij[1]] = pos 
+    #if f==0:
+    pgrid[0] += [pos_j]
+    pgrid[1] += [pos_i]
+    parasol_grid[ij[0]][ij[1]] = pos 
         
+        
+    mp=[0. for g in range(frame_number)]
+    q_len = abs((j_ceil-j_low)*(i_ceil-i_low))
+    pxiq = []#0 for q in range(q_len)]
+    
+    for k in range(i_low,i_ceil):
+        for l in range(j_low,j_ceil):
+            spat_filt_values[ij[0]][ij[1]] += [spatFilterPx(pos,(k,l),spat_filter_break_radius,sigma,alpha,beta)]
+            pxiq+=[pixels4d[(height+k)%height][(width+l)%width]]
+
+    print 'creation of spatial filter finished'
+    #exchange the order of that, to make it faster
+    #spatial filters can allow negative potentials
+    #print mp
+    for q in xrange(q_len):
+        if q % 5==0:
+            print q
+        w = spat_filt_values[ij[0]][ij[1]][q]
+        muli = [o/255.*w for o in pxiq[q]]
+        mp = map(lambda w,z: w+z, muli,mp)
+    #print mp
+    midget_pixels4d[ij[0]][ij[1]] = mp
+    
+    
         dis = False
         for k in range(i_low,i_ceil):
             for l in range(j_low,j_ceil):
-                p_spat_filt_values[ij[0]][ij[1]] += [spatFilterParasol(pos,(k,l),(par_m_ratio+2.)*spat_filter_break_radius,par_m_ratio*sigma,alpha,beta)]
+                p_spat_filt_values[ij[0]][ij[1]] += [spatFilterParasol(pos,(k,l),(par_m_ratio)*spat_filter_break_radius,par_m_ratio*sigma,alpha,beta)]
     
     mgiq = []
     for k in range(i_low,i_ceil):
@@ -380,21 +467,66 @@ def getSpatFilterParasol(ij):
         
     #spatial filters can allow negative potentials
     par_values_on[ij[0]][ij[1]][f] = sum(itertools.imap(lambda x,y: x*y, p_spat_filt_values[ij[0]][ij[1]],mgiq))
+'''    
     
+def getSpatFilterParasol(ij):
+    
+    if ij[0]%5==0:
+        if ij[1]==0:
+            print ij[0]
+    
+    pos_i = 0.866*par_m_ratio*ij[0]        #2*cos(30deg)
+    pos_j = par_m_ratio*ij[1]
+    
+    if ij[0]%2 == 0:
+        pos_j += par_m_ratio*0.5 
+
+    move = (par_m_ratio)*spat_filter_break_radius/px_midget_ratio
+    
+    i_low = int(par_m_ratio*ij[0]-move/0.866) # -> all j with dist < r
+    i_ceil = int(par_m_ratio*ij[0]+move/0.866)+1  
+    j_low = int(par_m_ratio*ij[1]-move) # -> all j with dist < r
+    j_ceil = int(par_m_ratio*ij[1]+move)+1
+    
+    pos = (pos_j, pos_i) 
+    
+    #print j_low,j_ceil
+    #if f==0:
+    pgrid[0] += [pos_j]
+    pgrid[1] += [pos_i]
+    parasol_grid[ij[0]][ij[1]] = pos 
+        
+        
+    pp=[0. for g in range(frame_number)]
+    q_len = abs((j_ceil-j_low)*(i_ceil-i_low))
+    mgiq = []#0 for q in range(q_len)]
+    
+    for k in range(i_low,i_ceil):
+        for l in range(j_low,j_ceil):
+            p_spat_filt_values[ij[0]][ij[1]] += [spatFilterParasol(pos,(k,l),(par_m_ratio)*spat_filter_break_radius,par_m_ratio*sigma,alpha,beta)]
+            mgiq += [temp_filter_vals_on[(midget_height+k)%midget_height][(midget_width+l)%midget_width]]
+
+    #exchange the order of that, to make it faster
+    #spatial filters can allow negative potentials
+    for q in xrange(q_len):
+        w = p_spat_filt_values[ij[0]][ij[1]][q]
+        muli = [o*w for o in mgiq[q]]
+        pp = map(lambda w,z: w+z, muli, pp)
+    par_values_on[ij[0]][ij[1]] = pp  
 
 
 print 'midget width: ' + str(int(midget_width))
 print 'parasol width: ' + str(int(parasol_width))
 #apply the spatial filter 
-for f in range(frame_number):
-    print f
-    #midgets3d = [[mi[f] for mi in midgs] for midgs in temp_filter_vals]   
-    midgets3d_on = [[mi[f] for mi in midgs] for midgs in temp_filter_vals_on]
-    #midgets3d_on_off = [[mi[f] for mi in midgs] for midgs in temp_filter_vals_off]  
-    #for i in range(len(temp_filter_vals)):
-    #    for j in range(len(temp_filter_vals[0])):
-    #        midgets3d_on_off[i][j] += temp_filter_vals_on[i][j][f]
-    map(lambda x: getSpatFilterParasol(x), itertools.product(range(parasol_height), range(parasol_width)))
+#for f in range(frame_number):
+#print f
+#midgets3d = [[mi[f] for mi in midgs] for midgs in temp_filter_vals]   
+#midgets3d_on = [[mi[f] for mi in midgs] for midgs in temp_filter_vals_on]
+#midgets3d_on_off = [[mi[f] for mi in midgs] for midgs in temp_filter_vals_off]  
+#for i in range(len(temp_filter_vals)):
+#    for j in range(len(temp_filter_vals[0])):
+#        midgets3d_on_off[i][j] += temp_filter_vals_on[i][j][f]
+map(lambda x: getSpatFilterParasol(x), itertools.product(range(parasol_height), range(parasol_width)))
 
 print 'parasols done'
 
@@ -490,13 +622,14 @@ cax.set_frame_on(False)
 
 out= '/home/schrader/Documents/microsaccades/img/'+ str(now.year) + '_' + str(now.month) + '_' + str(now.day) + '/' + str(handle_name) + '_' + str(now.hour) + '_' + str(now.minute) + '_' + str(now.second) + '.pdf'
 plt.savefig(out)
-
-#additional for moment, delte later on again
+#plt.show()
+'''
+#additional for moment, delete later on again
 fig = plt.figure(1)
 
 ax = fig.add_subplot(221)
 ax.set_title('midget output _on')
-plt.imshow(m_output_on[:,:,250], aspect='auto', interpolation='nearest')
+plt.imshow(m_output_on[:,:,2], aspect='auto', interpolation='nearest')
 ax.set_aspect('equal')
 plt.axis('off')
 
@@ -509,7 +642,7 @@ cax.set_frame_on(False)
 
 ax = fig.add_subplot(223)
 ax.set_title('parasolic output _on')
-plt.imshow(p_output_on[:,:,250], aspect='auto', interpolation='nearest')
+plt.imshow(p_output_on[:,:,2], aspect='auto', interpolation='nearest')
 ax.set_aspect('equal')
 plt.axis('off')
 
@@ -521,7 +654,7 @@ cax.set_frame_on(False)
 
 out= '/home/schrader/Documents/microsaccades/img/'+ str(now.year) + '_' + str(now.month) + '_' + str(now.day) + '/' + str(handle_name) + '_' + str(now.hour) + '_' + str(now.minute) + '_' + str(now.second) + '.pdf'
 plt.savefig(out)
-
+'''
 #out= 'img/video/' + str(sim_title) +'/'+ str(handle_name) + '.pdf'
 #plt.savefig(out)
 
