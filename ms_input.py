@@ -303,7 +303,7 @@ def getSpatFilter(ij):
     for q in xrange(q_len):
         w = spat_filt_values[ij[0]][ij[1]][q]
         muli = [o/255.*w for o in pxiq[q]]
-        mp = map(lambda w,z: w+z, muli,mp)
+        mp = list(itertools.imap(lambda w,z: w+z, muli,mp))
     #print mp
     midget_pixels4d[ij[0]][ij[1]] = mp
     #= sum(itertools.imap(lambda x,y: x*y, spat_filt_values[ij[0]][ij[1]],pxiq))
@@ -511,7 +511,7 @@ def getSpatFilterParasol(ij):
     for q in xrange(q_len):
         w = p_spat_filt_values[ij[0]][ij[1]][q]
         muli = [o*w for o in mgiq[q]]
-        pp = map(lambda w,z: w+z, muli, pp)
+        pp = list(itertools.imap(lambda w,z: w+z, muli, pp))
     par_values_on[ij[0]][ij[1]] = pp  
 
 
@@ -623,7 +623,7 @@ cax.set_frame_on(False)
 out= '/home/schrader/Documents/microsaccades/img/'+ str(now.year) + '_' + str(now.month) + '_' + str(now.day) + '/' + str(handle_name) + '_' + str(now.hour) + '_' + str(now.minute) + '_' + str(now.second) + '.pdf'
 plt.savefig(out)
 #plt.show()
-'''
+
 #additional for moment, delete later on again
 fig = plt.figure(1)
 
@@ -652,9 +652,9 @@ cax.get_yaxis().set_visible(False)
 cax.patch.set_alpha(0)
 cax.set_frame_on(False)
 
-out= '/home/schrader/Documents/microsaccades/img/'+ str(now.year) + '_' + str(now.month) + '_' + str(now.day) + '/' + str(handle_name) + '_' + str(now.hour) + '_' + str(now.minute) + '_' + str(now.second) + '.pdf'
+out= '/home/schrader/Documents/microsaccades/img/'+ str(now.year) + '_' + str(now.month) + '_' + str(now.day) + '/' + str(handle_name) + '_' + str(now.hour) + '_' + str(now.minute) + '_' + str(now.second) + '_on.pdf'
 plt.savefig(out)
-'''
+
 #out= 'img/video/' + str(sim_title) +'/'+ str(handle_name) + '.pdf'
 #plt.savefig(out)
 

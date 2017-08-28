@@ -28,6 +28,7 @@ extent_x = float(sys.argv[3])
 extent_y = float(sys.argv[4])
 delay = float(sys.argv[5])
 vel = float(sys.argv[6])
+weight = float(sys.argv[6])
 #extent_x = extent
 #extent_y = extent
 #center = extent/2.
@@ -70,7 +71,7 @@ pmr = max(paxs)
 mrs = []
 prs=[]
 
-print parasolic_rates
+#print parasolic_rates
 
 
 #-----------------------------------------------------------------------------------------NETWORK-PART
@@ -177,7 +178,7 @@ parasolic = tp.CreateLayer({'extent' : [extent_x,extent_y], 'center' : [center_x
 #120 degree commented for the moment since two build a basis
 
 #these are direction dependent
-m_reichardt_0_left = tp.CreateLayer({'extent' : [extent_x,extent_y], 'center' : [center_x,center_y], 'positions' : gm_pos, 'elements': 'iaf_psc_alpha', 'edge_wrap': True})
+m_reichardt_0_left = tp.CreateLayer({'extent' : [extent_x,extent_y], 'center' : [center_x,center_y], 'positions' : gm_pos, 'elements': 'iaf_psc_alpha'})
 m_reichardt_0_right = tp.CreateLayer({'extent' : [extent_x,extent_y], 'center' : [center_x,center_y], 'positions' : gm_pos, 'elements': 'iaf_psc_alpha', 'edge_wrap': True})
 m_reichardt_60_up = tp.CreateLayer({'extent' : [extent_x,extent_y], 'center' : [center_x,center_y], 'positions' : gm_pos, 'elements': 'iaf_psc_alpha', 'edge_wrap': True})
 m_reichardt_60_down = tp.CreateLayer({'extent' : [extent_x,extent_y], 'center' : [center_x,center_y], 'positions' : gm_pos, 'elements': 'iaf_psc_alpha', 'edge_wrap': True})
@@ -229,27 +230,27 @@ out_p_r_60_multi = tp.CreateLayer({'extent' : [extent_x,extent_y], 'center' : [c
 
 
 
-
+nest.CopyModel('static_synapse', 'exc', {'weight' : 2.0})
 #-----------------------------------------------------------------------------------CREATE-CONNECTIONS
 #connections to left/right half of Reichardt detector
-m_r_0_left_conndict = {'connection_type' : 'convergent','mask' : {'rectangular' : {'lower_left' : [-0.6,-0.1], 'upper_right' : [0.1,0.1]}}, 'delays' : {'linear' : {'c' : .1, 'a' : delay}}}
-m_r_0_right_conndict = {'connection_type' : 'convergent','mask' : {'rectangular' : {'lower_left' : [-0.1,-0.1], 'upper_right' : [0.1,0.6]}}, 'delays' : {'linear' : {'c' : .1, 'a' : delay}}}
-m_r_60_up_conndict = {'connection_type' : 'convergent','mask' : {'rectangular' : {'lower_left' : [-0.5,-0.5], 'upper_right' : [0.5,0.5]}, 'anchor' : [0.25,0.433]}, 'delays' : {'linear' : {'c' : .1, 'a' : delay}}}
-m_r_60_down_conndict = {'connection_type' : 'convergent','mask' : {'rectangular' : {'lower_left' : [-0.5,-0.5], 'upper_right' : [0.5,0.5]}, 'anchor' : [-0.25,-0.433]}, 'delays' : {'linear' : {'c' : .1, 'a' : delay}}}
-p_r_0_left_conndict = {'connection_type' : 'convergent','mask' : {'rectangular' : {'lower_left' : [-2.1,-0.1], 'upper_right' : [0.1,0.1]}}, 'delays' : {'linear' : {'c' : .1, 'a' : delay}}}
-p_r_0_right_conndict = {'connection_type' : 'convergent','mask' : {'rectangular' : {'lower_left' : [-0.1,-0.1], 'upper_right' : [0.1,2.1]}}, 'delays' : {'linear' : {'c' : .1, 'a' : delay}}}
-p_r_60_up_conndict = {'connection_type' : 'convergent','mask' : {'rectangular' : {'lower_left' : [-2.,-2.], 'upper_right' : [2.,2.]}, 'anchor' : [1.,1.732]}, 'delays' : {'linear' : {'c' : .1, 'a' : delay}}}
-p_r_60_down_conndict = {'connection_type' : 'convergent','mask' : {'rectangular' : {'lower_left' : [-2.,-2.], 'upper_right' : [2.,2.]}, 'anchor' : [-1.,-1.732]}, 'delays' : {'linear' : {'c' : .1, 'a' : delay}}}
+m_r_0_left_conndict = {'connection_type' : 'convergent','mask' : {'rectangular' : {'lower_left' : [-0.6,-0.1], 'upper_right' : [0.1,0.1]}}, 'weights' : weight, 'delays' : {'linear' : {'c' : .1, 'a' : delay}}}
+m_r_0_right_conndict = {'connection_type' : 'convergent','mask' : {'rectangular' : {'lower_left' : [-0.1,-0.1], 'upper_right' : [0.1,0.6]}}, 'weights' : weight, 'delays' : {'linear' : {'c' : .1, 'a' : delay}}}
+m_r_60_up_conndict = {'connection_type' : 'convergent','mask' : {'rectangular' : {'lower_left' : [-0.5,-0.5], 'upper_right' : [0.5,0.5]}, 'anchor' : [0.25,0.433]}, 'weights' : weight, 'delays' : {'linear' : {'c' : .1, 'a' : delay}}}
+m_r_60_down_conndict = {'connection_type' : 'convergent','mask' : {'rectangular' : {'lower_left' : [-0.5,-0.5], 'upper_right' : [0.5,0.5]}, 'anchor' : [-0.25,-0.433]}, 'weights' : weight, 'delays' : {'linear' : {'c' : .1, 'a' : delay}}}
+p_r_0_left_conndict = {'connection_type' : 'convergent','mask' : {'rectangular' : {'lower_left' : [-2.1,-0.1], 'upper_right' : [0.1,0.1]}}, 'weights' : weight, 'delays' : {'linear' : {'c' : .1, 'a' : delay}}}
+p_r_0_right_conndict = {'connection_type' : 'convergent','mask' : {'rectangular' : {'lower_left' : [-0.1,-0.1], 'upper_right' : [0.1,2.1]}}, 'weights' : weight, 'delays' : {'linear' : {'c' : .1, 'a' : delay}}}
+p_r_60_up_conndict = {'connection_type' : 'convergent','mask' : {'rectangular' : {'lower_left' : [-2.,-2.], 'upper_right' : [2.,2.]}, 'anchor' : [1.,1.732]}, 'weights' : weight, 'delays' : {'linear' : {'c' : .1, 'a' : delay}}}
+p_r_60_down_conndict = {'connection_type' : 'convergent','mask' : {'rectangular' : {'lower_left' : [-2.,-2.], 'upper_right' : [2.,2.]}, 'anchor' : [-1.,-1.732]}, 'weights' : weight, 'delays' : {'linear' : {'c' : .1, 'a' : delay}}}
 
 #connections of left/right half to just motion sensitive Reichardt detector
-m_r_0_left_r_0_conndict = {'connection_type' : 'convergent','mask' : {'rectangular' : {'lower_left' : [-0.1,-0.1], 'upper_right' : [0.3,0.1]}} } #'synapse_model' : 'ex'}
-m_r_0_right_r_0_conndict = {'connection_type' : 'convergent','mask' : {'rectangular' : {'lower_left' : [-0.3,-0.1], 'upper_right' : [0.1,0.1]}} } #'synapse_model' : 'ex'}
-m_r_60_up_r_60_conndict = {'connection_type' : 'convergent','mask' : {'rectangular' : {'lower_left' : [-0.3,-0.5], 'upper_right' : [0.1,0.1]}} } #'synapse_model' : 'ex'}
-m_r_60_down_r_60_conndict = {'connection_type' : 'convergent','mask' : {'rectangular' : {'lower_left' : [-0.1,-0.1], 'upper_right' : [0.3,0.5]}} } #'synapse_model' : 'ex'}
-p_r_0_left_r_0_conndict = {'connection_type' : 'convergent','mask' : {'rectangular' : {'lower_left' : [-0.1,-0.1], 'upper_right' : [1.1,20.1]}} } #'synapse_model' : 'ex'}
-p_r_0_right_r_0_conndict = {'connection_type' : 'convergent','mask' : {'rectangular' : {'lower_left' : [-1.1,-0.1], 'upper_right' : [0.1,0.1]}} } #'synapse_model' : 'ex'}
-p_r_60_up_r_60_conndict = {'connection_type' : 'convergent','mask' : {'rectangular' : {'lower_left' : [-1.25,-1.], 'upper_right' : [0.1,0.1]}} } #'synapse_model' : 'ex'}
-p_r_60_down_r_60_conndict = {'connection_type' : 'convergent','mask' : {'rectangular' : {'lower_left' : [-0.1,-0.1], 'upper_right' : [1.1,1.]}} } #'synapse_model' : 'ex'}
+m_r_0_left_r_0_conndict = {'connection_type' : 'convergent','mask' : {'rectangular' : {'lower_left' : [-0.1,-0.1], 'upper_right' : [0.3,0.1]}}, 'weights' : weight } #'synapse_model' : 'ex'}
+m_r_0_right_r_0_conndict = {'connection_type' : 'convergent','mask' : {'rectangular' : {'lower_left' : [-0.3,-0.1], 'upper_right' : [0.1,0.1]}}, 'weights' : weight } #'synapse_model' : 'ex'}
+m_r_60_up_r_60_conndict = {'connection_type' : 'convergent','mask' : {'rectangular' : {'lower_left' : [-0.3,-0.5], 'upper_right' : [0.1,0.1]}}, 'weights' : weight } #'synapse_model' : 'ex'}
+m_r_60_down_r_60_conndict = {'connection_type' : 'convergent','mask' : {'rectangular' : {'lower_left' : [-0.1,-0.1], 'upper_right' : [0.3,0.5]}}, 'weights' : weight } #'synapse_model' : 'ex'}
+p_r_0_left_r_0_conndict = {'connection_type' : 'convergent','mask' : {'rectangular' : {'lower_left' : [-0.1,-0.1], 'upper_right' : [1.1,20.1]}}, 'weights' : weight } #'synapse_model' : 'ex'}
+p_r_0_right_r_0_conndict = {'connection_type' : 'convergent','mask' : {'rectangular' : {'lower_left' : [-1.1,-0.1], 'upper_right' : [0.1,0.1]}}, 'weights' : weight } #'synapse_model' : 'ex'}
+p_r_60_up_r_60_conndict = {'connection_type' : 'convergent','mask' : {'rectangular' : {'lower_left' : [-1.25,-1.], 'upper_right' : [0.1,0.1]}}, 'weights' : weight } #'synapse_model' : 'ex'}
+p_r_60_down_r_60_conndict = {'connection_type' : 'convergent','mask' : {'rectangular' : {'lower_left' : [-0.1,-0.1], 'upper_right' : [1.1,1.]}}, 'weights' : weight } #'synapse_model' : 'ex'}
 
 '''
 #left commented for the moment
@@ -293,6 +294,7 @@ tp.ConnectLayers(parasolic,out_p,out_conndict)
 tp.ConnectLayers(midgets,out_m_multi,out_conndict)
 tp.ConnectLayers(parasolic,out_p_multi,out_conndict)
 
+
 tp.ConnectLayers(m_reichardt_0,out_m_r_0,out_conndict)
 tp.ConnectLayers(p_reichardt_0,out_p_r_0,out_conndict)
 #tp.ConnectLayers(out_m_r_0_multi,m_reichardt_0,out_conndict)
@@ -303,13 +305,15 @@ tp.ConnectLayers(p_reichardt_0,out_p_r_0,out_conndict)
 #tp.ConnectLayers(m_reichardt_60,out_m_r_60_multi,out_conndict)
 #tp.ConnectLayers(p_reichardt_60,out_p_r_60_multi,out_conndict)
 
-
+#ctr = tp.FindNearestElement(m_reichardt_0,[6.,12.])
+#fig = tp.PlotLayer(midgets,nodesize =80)
+#tp.PlotTargets(ctr,midgets,fig=fig,mask=m_r_0_right_conndict['mask'],src_size=250, tgt_color='red',tgt_size=20)
 
 #-------------------------------------------------------------------------------------------SIMULATION
 MIDs = nest.GetNodes(midgets)
 PIDs = nest.GetNodes(parasolic)
 
-for f in range(200,300):#frames):
+for f in range(2):#00,300):#frames):
     print f
     #reset rates
     for n in range(len(MIDs[0])):
@@ -356,9 +360,9 @@ for q in range(120):
         #plt.subplot(221)
         h, e = np.histogram(sp, bins=np.arange(0., 101., 100.))
         store_sp +=[h]
-        ms_all_file.write(str(delay)+' '+ str(vel)+' '+str(sp)+'\n')
-        ms_all_file.write(str(delay)+' '+ str(vel)+' '+str(h)+'\n')
-        ms_all_file.write(str(delay)+' '+ str(vel)+' '+str(e)+'\n')
+        ms_all_file.write(str(weight)+' '+str(delay)+' '+ str(vel)+' '+str(sp)+'\n')
+        ms_all_file.write(str(weight)+' '+str(delay)+' '+ str(vel)+' '+str(h)+'\n')
+        ms_all_file.write(str(weight)+' '+str(delay)+' '+ str(vel)+' '+str(e)+'\n')
         #plt.plot(t, r, color='b')
         #plt.step(e[:-1], h , color='b', where='post')
         #plt.title('PST histogram and firing rates')
@@ -381,7 +385,7 @@ print max_spikes
 
 k = (delay,vel,max_spikes)
 ms_file = open('data/mo_det_cal/m_max_spikes.txt','a+')
-ms_file.write(str(delay)+' '+ str(vel)+' '+ str(max_spikes[0])+'\n')
+ms_file.write(str(weight)+' '+str(delay)+' '+ str(vel)+' '+ str(max_spikes[0])+'\n')
 ms_file.close()
 
 ps_all_file = open('data/mo_det_cal/p_max_spikes_all.txt','a+')
@@ -409,9 +413,9 @@ for q in range(30):
         plt.subplot(221)
         h, e = np.histogram(sp, bins=np.arange(0., 101., 100.))
         store_sp +=[h]
-        ps_all_file.write(str(delay)+' '+ str(vel)+' '+str(sp)+'\n')
-        ps_all_file.write(str(delay)+' '+ str(vel)+' '+str(h)+'\n')
-        ps_all_file.write(str(delay)+' '+ str(vel)+' '+str(e)+'\n')
+        ps_all_file.write(str(weight)+' '+str(delay)+' '+ str(vel)+' '+str(sp)+'\n')
+        ps_all_file.write(str(weight)+' '+str(delay)+' '+ str(vel)+' '+str(h)+'\n')
+        ps_all_file.write(str(weight)+' '+str(delay)+' '+ str(vel)+' '+str(e)+'\n')
         #plt.plot(t, r, color='b')
         #plt.step(e[:-1], h , color='b', where='post')
         #plt.title('PST histogram and firing rates')
@@ -434,5 +438,5 @@ print max_spikes
 
 k = (delay,vel,max_spikes)
 ps_file = open('data/mo_det_cal/p_max_spikes.txt','a+')
-ps_file.write(str(delay)+' '+ str(vel)+' '+ str(max_spikes[0])+'\n')
+ps_file.write(str(weight)+' '+str(delay)+' '+ str(vel)+' '+ str(max_spikes[0])+'\n')
 ps_file.close()
