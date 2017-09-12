@@ -384,13 +384,13 @@ def spatFilterParasol(center,kl,r_break,sigma,alpha,beta):
     
     #if that seems strange: midget_grid is transposed in order to show it better in graphics etc.
     if kl[0] >= midget_height:
-        n_kl_w=kl_val[1]+width
+        n_kl_w=kl_val[1]+height
     if kl[0] < 0:
-        n_kl_w=kl_val[1]-width
+        n_kl_w=kl_val[1]-height
     if kl[1] >= midget_width:
-        n_kl_h=kl_val[0]+height
+        n_kl_h=kl_val[0]+width
     if kl[1] < 0:
-        n_kl_h=kl_val[0]-height
+        n_kl_h=kl_val[0]-width
     
     kl_pos=(n_kl_h,n_kl_w)
     
@@ -501,11 +501,36 @@ def getSpatFilterParasol(ij):
     q_len = abs((j_ceil-j_low)*(i_ceil-i_low))
     mgiq = []#0 for q in range(q_len)]
     
+    #to_graph = [[0. for l in range(j_ceil-j_low)] for k in range(i_ceil-i_low)]
     for k in range(i_low,i_ceil):
         for l in range(j_low,j_ceil):
             p_spat_filt_values[ij[0]][ij[1]] += [spatFilterParasol(pos,(k,l),(par_m_ratio)*spat_filter_break_radius,par_m_ratio*sigma,alpha,beta)]
             mgiq += [temp_filter_vals_on[(midget_height+k)%midget_height][(midget_width+l)%midget_width]]
+            #if ij[0]==0:
+            #    if ij[1]==16:
+            #        to_graph[k-i_low][l-j_low]=spatFilterParasol(pos,(k,l),(par_m_ratio)*spat_filter_break_radius,par_m_ratio*sigma,alpha,beta) 
+    
+    '''
+    #leave this for possible further investigation later on
+    if ij[0]==0:
+        if ij[1]==16:
+            fig = plt.figure(1)
 
+            ax = fig.add_subplot(111)
+            ax.set_title('parasolic filter')
+            plt.imshow(to_graph, aspect='auto', interpolation='nearest')
+            ax.set_aspect('equal')
+            plt.axis('off')
+
+            cax = fig.add_axes([0.,0.,1.,1.])
+            cax.get_xaxis().set_visible(False)
+            cax.get_yaxis().set_visible(False)
+            cax.patch.set_alpha(0)
+            cax.set_frame_on(False)
+            
+            plt.show()
+            plt.close()
+    '''
     #exchange the order of that, to make it faster
     #spatial filters can allow negative potentials
     for q in xrange(q_len):
@@ -595,7 +620,7 @@ m_data.close()
 
 fig = plt.figure(1)
 
-ax = fig.add_subplot(221)
+ax = fig.add_subplot(211)
 ax.set_title('midget output')
 plt.imshow(m_output[:,:,250], aspect='auto', interpolation='nearest')
 ax.set_aspect('equal')
@@ -608,7 +633,7 @@ cax.patch.set_alpha(0)
 cax.set_frame_on(False)
 #plt.colorbar(orientation='vertical')
 
-ax = fig.add_subplot(223)
+ax = fig.add_subplot(212)
 ax.set_title('parasolic output')
 plt.imshow(p_output_on[:,:,250], aspect='auto', interpolation='nearest')
 ax.set_aspect('equal')
@@ -623,13 +648,13 @@ cax.set_frame_on(False)
 out= '/home/schrader/Documents/microsaccades/img/'+ str(now.year) + '_' + str(now.month) + '_' + str(now.day) + '/' + str(handle_name) + '_' + str(now.hour) + '_' + str(now.minute) + '_' + str(now.second) + '.pdf'
 plt.savefig(out)
 #plt.show()
-
+'''
 #additional for moment, delete later on again
 fig = plt.figure(1)
 
 ax = fig.add_subplot(221)
 ax.set_title('midget output _on')
-plt.imshow(m_output_on[:,:,2], aspect='auto', interpolation='nearest')
+plt.imshow(m_output_on[:,:,250], aspect='auto', interpolation='nearest')
 ax.set_aspect('equal')
 plt.axis('off')
 
@@ -641,8 +666,8 @@ cax.set_frame_on(False)
 #plt.colorbar(orientation='vertical')
 
 ax = fig.add_subplot(223)
-ax.set_title('parasolic output _on')
-plt.imshow(p_output_on[:,:,2], aspect='auto', interpolation='nearest')
+ax.set_title('parasolic output on')
+plt.imshow(p_output_on[:,:,250], aspect='auto', interpolation='nearest')
 ax.set_aspect('equal')
 plt.axis('off')
 
@@ -659,3 +684,4 @@ plt.savefig(out)
 #plt.savefig(out)
 
 #plt.show()
+'''

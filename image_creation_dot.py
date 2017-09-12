@@ -7,10 +7,11 @@ import os
 
 #---------------------------------------------------------------------------------------IMAGE-CREATION
 
-image_size = 280
+image_size = 120 #280
+image_height = 30
 radius = 4. #dot size of 4arcmin -> 8px
 rect_size = 110. #size of inner radius 
-vel = 0.06 #velocity is 30 arcmin/s -> 60px/1000ms
+vel = 0.3 #0.06 #velocity is 30 arcmin/s -> 60px/1000ms
 
 suff = sys.argv[1]
 vel_on = int(sys.argv[2])
@@ -24,12 +25,12 @@ direction = float(angle)*np.pi/8. #dot moving direction in arc (get right veloci
 #for normal distributed microsaccades
 sigma = 0.447
 
-file_location = "/home/schrader/Documents/microsaccades/video/img_input/poletti2010/"+str(suff)
-if vel_on==1:
-    file_location += "/"+str(angle)+"_8_pi_arc"
+file_location = "/home/schrader/Documents/microsaccades/video/img_input/"+str(suff) #/poletti2010/"+str(suff)
+#if vel_on==1:
+#    file_location += "/"+str(angle)+"_8_pi_arc"
 #save the different conditions
 
-film_length = 1000 #int(framerate)*(stripe_width+gap)
+film_length = 400 #1000 #int(framerate)*(stripe_width+gap)
 
 #get normal 2d distribution
 mean = [0, 0]
@@ -39,12 +40,12 @@ tl_x, tl_y = sigma*np.random.multivariate_normal(mean, cov, film_length).T
 d_data = open(str(file_location)+'/displacement.data','w+')
 np.save(d_data, (tl_x, tl_y))
 d_data.close()
-pos = (image_size/2.+0.5,image_size/2+0.5)
-center = (image_size/2.-0.5,image_size/2.-0.5) #for rectangle
+pos = (image_height/2.+0.5,0.5) #image_size/2+0.5)
+center = (image_height/2.-0.5,image_size/2.-0.5) #for rectangle
 
 #loop through the 
 for f in range(film_length):
-    canvas = np.zeros((image_size, image_size))
+    canvas = np.zeros((image_height, image_size))
     
     #update position
     #for dot moving task-----------------------
@@ -74,7 +75,8 @@ for f in range(film_length):
                 if abs(float(i)-center[0]) > rect_size or abs(float(j)-center[1])> rect_size:
                     canvas[i,j] = 1
             #------------------------------------------
-        
+     
+    '''
     fig = plt.figure()
     fig.set_size_inches(2,2)
     ax = plt.Axes(fig, [0., 0., 1., 1.])
@@ -83,19 +85,40 @@ for f in range(film_length):
     ax.imshow(canvas, cmap='gray')
     plt.savefig(file_location + "/first"+str(f+1).zfill(3)+".png",  dpi = 140)
     plt.close()
+    '''
+    fig = plt.figure()
+    fig.set_size_inches(1,0.25)
+    ax = plt.Axes(fig, [0., 0., 1., 1.])
+    ax.set_axis_off()
+    fig.add_axes(ax)
+    ax.imshow(canvas, cmap='gray')
     
+    plt.savefig(file_location + "/first"+str(f+1).zfill(3)+".png",  dpi = 120)
+    plt.close()
+    
+    img = cv2.imread(file_location + "/first"+str(f+1).zfill(3)+".png",0)
+    rows,cols = img.shape
     #--------------------------------------------------------------------------------GAUSSIAN-BLURRING
     img = cv2.imread(file_location + "/first"+str(f+1).zfill(3)+".png",0)
     rows,cols = img.shape
     
     blur = cv2.GaussianBlur(img,(3,3),0.5)
-    
+    '''
     fig = plt.figure()
     fig.set_size_inches(2,2)
     ax = plt.Axes(fig, [0., 0., 1., 1.])
     ax.set_axis_off()
     fig.add_axes(ax)
     ax.imshow(blur, cmap='gray')
+    '''
     
-    plt.savefig(file_location + "/second"+str(f+1).zfill(3)+".png",  dpi = 140)
+    fig = plt.figure()
+    fig.set_size_inches(1,0.25)
+    ax = plt.Axes(fig, [0., 0., 1., 1.])
+    ax.set_axis_off()
+    fig.add_axes(ax)
+    ax.imshow(blur, cmap='gray')
+    
+    plt.savefig(file_location + "/second"+str(f+1).zfill(3)+".png",  dpi = 120)
+    #plt.savefig(file_location + "/second"+str(f+1).zfill(3)+".png",  dpi = 140)
     plt.close()
