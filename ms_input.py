@@ -21,6 +21,9 @@ from microsaccades_functions import *
 
 #---------------------------------------------------------------------------------------------------LOAD-FRAMES
 now = datetime.datetime.now()
+
+pgf_with_rc_fonts = {"font.family": "serif","font.serif": [],"font.sans-serif": []}
+plt.rcParams.update(pgf_with_rc_fonts)
 '''
 #for parallel computing
 try:
@@ -607,9 +610,13 @@ p_data = open('/home/schrader/Documents/microsaccades/data/'+sim_title+'/parasol
 np.save(p_data, p_output_on)
 p_data.close()
 
-m_data = open('/home/schrader/Documents/microsaccades/data/'+sim_title+'/midget_rates_'+str(handle_name)+'_off.data','w+')
-np.save(m_data, m_output_off)
-m_data.close()
+#not needed for poletti, murakami etc.
+#m_data = open('/home/schrader/Documents/microsaccades/data/'+sim_title+'/midget_rates_'+str(handle_name)+'_off.data','w+')
+#np.save(m_data, m_output_off)
+#m_data.close()
+
+print '--- PROGRAM FINISHED ---'
+sys.exit()
 
 #p_data = open('data/'+sim_title+'/parasolic_rates_'+str(handle_name)+'_on_off.data','w+')
 #np.save(p_data, p_output_on_off)
@@ -617,7 +624,7 @@ m_data.close()
 
 #-----------------------------------------------------------------------------------------------PLOT-SOME-STUFF
 
-
+'''
 fig = plt.figure(1)
 
 ax = fig.add_subplot(211)
@@ -645,10 +652,13 @@ cax.get_yaxis().set_visible(False)
 cax.patch.set_alpha(0)
 cax.set_frame_on(False)
 
-out= '/home/schrader/Documents/microsaccades/img/'+ str(now.year) + '_' + str(now.month) + '_' + str(now.day) + '/' + str(handle_name) + '_' + str(now.hour) + '_' + str(now.minute) + '_' + str(now.second) + '.pdf'
+out= '/home/schrader/Documents/microsaccades/img/'+ str(now.year) + '_' + str(now.month) + '_' + str(now.day) + '/' + str(now.hour) + '_' + str(now.minute) + '_' + str(now.second) + '_' + str(handle_name) + '.pdf'
 plt.savefig(out)
+plt.close()
 #plt.show()
-'''
+
+
+
 #additional for moment, delete later on again
 fig = plt.figure(1)
 
@@ -677,7 +687,7 @@ cax.get_yaxis().set_visible(False)
 cax.patch.set_alpha(0)
 cax.set_frame_on(False)
 
-out= '/home/schrader/Documents/microsaccades/img/'+ str(now.year) + '_' + str(now.month) + '_' + str(now.day) + '/' + str(handle_name) + '_' + str(now.hour) + '_' + str(now.minute) + '_' + str(now.second) + '_on.pdf'
+out= '/home/schrader/Documents/microsaccades/img/'+ str(now.year) + '_' + str(now.month) + '_' + str(now.day) + '/' + str(now.hour) + '_' + str(now.minute) + '_' + str(now.second) + '_' + str(handle_name) + '_on.pdf'
 plt.savefig(out)
 
 #out= 'img/video/' + str(sim_title) +'/'+ str(handle_name) + '.pdf'
