@@ -16,7 +16,8 @@ half_wl = 120./(float(freq))
 
 stripe_width = int(half_wl)
 gap = int(half_wl)
-image_size = 240 # two times because of rotation
+image_width = 120 #240 # two times because of rotation
+image_height = 30
 
 degrees = sys.argv[1]
 
@@ -32,7 +33,7 @@ for f in range(film_length):
     #    offset += 1
     
 
-    canvas = np.zeros((image_size, image_size))
+    canvas = np.zeros((image_height, image_width))
     canvas[0,0]=1
     canvas[:,:] = 0.5*np.cos(float(f)/100.*np.pi-np.pi)+0.5
     current_col = int(offset) #there's the problem
@@ -40,26 +41,26 @@ for f in range(film_length):
         canvas[:, 0:current_col+stripe_width] = 0.5*np.cos(float(f)/100.*np.pi)+0.5
         #canvas[:, current_col+stripe_width] = (f%int(framerate))/framerate
         current_col += stripe_width + gap
-    while current_col < image_size:
-        if current_col + stripe_width + gap  <= image_size-1:
+    while current_col < image_width:
+        if current_col + stripe_width + gap  <= image_width-1:
             canvas[:, current_col:current_col+stripe_width] = 0.5*np.cos(float(f)/100.*np.pi)+0.5
             #canvas[:, current_col] = 1 - (f%int(framerate))/framerate
             #canvas[:, current_col+stripe_width] = (f%int(framerate))/framerate
             current_col += stripe_width + gap
-        elif current_col + stripe_width <= image_size-1:
+        elif current_col + stripe_width <= image_width-1:
             canvas[:, current_col:current_col+stripe_width] = 0.5*np.cos(float(f)/100.*np.pi)+0.5
             #canvas[:, current_col] = 1 - (f%int(framerate))/framerate
             #canvas[:, current_col+stripe_width] = (f%int(framerate))/framerate
-            current_col = image_size
+            current_col = image_width
         else:
             #canvas[:, current_col] = 1 - (f%int(framerate))/framerate
             canvas[:, current_col:] = 0.5*np.cos(float(f)/100.*np.pi)+0.5
-            current_col = image_size
+            current_col = image_width
 
     if f==30:
         print canvas
     fig = plt.figure()
-    fig.set_size_inches(2,2)
+    fig.set_size_inches(1,0.25)
     ax = plt.Axes(fig, [0., 0., 1., 1.])
     ax.set_axis_off()
     fig.add_axes(ax)

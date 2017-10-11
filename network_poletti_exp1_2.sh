@@ -3,7 +3,7 @@
 date
 echo 'STARTING SIMULATIONS'
 
-for a in 0 1 2 3 5 7 10 12 14 15 
+for a in 1 5 7 10 12 15  #0 1 2 3 5 7 10 12 14 15 
 do
     for i in 1 #{1..10} 
     do
@@ -43,7 +43,7 @@ do
     done
 done
 
-for i in {1..10} 
+for i in {2..7} 
 do
     if [ ! -d ./data/poletti2010/exp1/cond1/network/${i} ]; then
         mkdir -p ./data/poletti2010/exp1/cond1/network/${i};
@@ -69,13 +69,13 @@ do
     fi
 
     date
-    python ms_network.py poletti2010/exp1/cond1/ 1 ${i} exp1_cond1_${i} 241. 241. 1 1
-    python ms_network.py poletti2010/exp1/cond1_light/ 1 ${i} exp1_cond1_light_${i} 241. 241. 1 1_light
-    python ms_network.py poletti2010/exp1/cond3/ 1 1 exp1_cond3 241. 241. 1 3
-    python ms_network.py poletti2010/exp1/cond3_light/ 1 ${i} exp1_cond3_light_${i} 241. 241. 1 3_light 
-    python ms_network.py poletti2010/exp2/cond1/ 1 ${i} exp2_cond1_${i} 241. 241. 2 1
-    python ms_network.py poletti2010/exp2/cond3/ 1 ${i} exp2_cond3_${i} 241. 241. 2 3
-    python ms_network.py poletti2010/exp2/cond5/ 1 1 exp2_cond5 241. 241. 2 5
+    python ms_network.py poletti2010/exp1/cond1/ ${i} ${i} exp1_cond1_${i} 241. 241. 1 1
+    python ms_network.py poletti2010/exp1/cond1_light/ ${i} ${i} exp1_cond1_light_${i} 241. 241. 1 1_light
+    python ms_network.py poletti2010/exp1/cond3/ 1 ${i} exp1_cond3_${i} 241. 241. 1 3
+    python ms_network.py poletti2010/exp1/cond3_light/ ${i} ${i} exp1_cond3_light_${i} 241. 241. 1 3_light 
+    python ms_network.py poletti2010/exp2/cond1/ ${i} ${i} exp2_cond1_${i} 241. 241. 2 1
+    python ms_network.py poletti2010/exp2/cond3/ ${i} ${i} exp2_cond3_${i} 241. 241. 2 3
+    python ms_network.py poletti2010/exp2/cond5/ 1 ${i} exp2_cond5_${i} 241. 241. 2 5
     date
     echo ${i}: five files processed
 done
@@ -156,40 +156,3 @@ python ms_input.py poletti2010/exp2/cond7/15_8_pi_arc/1 exp2_cond7_15_8_pi_arc_1
 wait
 date
 echo fifth three files processed
-
-
-for a in 12 14 15 
-do
-    for i in 1 #{1..10} 
-    do
-        date
-        if [ ! -d ./data/poletti2010/exp2/cond7/${a}_8_pi_arc/network/${i} ]; then
-            mkdir -p ./data/poletti2010/exp2/cond7/${a}_8_pi_arc/network/${i};
-        fi
-        python ms_network.py poletti2010/exp2/cond7/${a}_8_pi_arc/ ${i} ${i} exp2_cond7_${a}_8_pi_arc_${i} 281. 281. 2 7
-        date
-        echo ${a}: all files processed
-    done
-done
-
-python ms_input.py poletti2010/exp1/cond4_light/12_8_pi_arc/1 exp1_cond4_light_12_8_pi_arc_1 1000 &
-python ms_input.py poletti2010/exp1/cond4_light/14_8_pi_arc/1 exp1_cond4_light_14_8_pi_arc_1 1000 &
-python ms_input.py poletti2010/exp1/cond4_light/15_8_pi_arc/1 exp1_cond4_light_15_8_pi_arc_1 1000 
-wait
-date
-echo sixth three files processed
-
-for a in 12 14 15 
-do
-    for i in 1 #{1..10} 
-    do
-        date
-        if [ ! -d ./data/poletti2010/exp1/cond4_light/${a}_8_pi_arc/network/${i} ]; then
-            mkdir -p ./data/poletti2010/exp1/cond4_light/${a}_8_pi_arc/network/${i};
-        fi
-
-        python ms_network.py poletti2010/exp1/cond4_light/${a}_8_pi_arc/ ${i} ${i} exp1_cond4_light_${a}_8_pi_arc_${i} 241. 241. 1 4_light
-        date
-        echo ${a}: all files processed
-    done
-done

@@ -44,22 +44,20 @@ def set_I_e_random(layer):
 extent = 121.
 delay = 30. # speed of point in poletti 2010 -> maybe increase a bit for more reacton later on
 
-t_start = 0
-t_end = 1000 #1000
+t_start = 200
+t_end = 400 #1000
 
 weight = 40.
 weight_std = 1.5
 #I_E = 410.
 
 sim_title = sys.argv[1]
-sim_title_2 = sys.argv[2]
-sim_nr = sys.argv[3]
-handle_name = sys.argv[4]
+#sim_title_2 = sys.argv[2]
+#sim_nr = sys.argv[3]
+handle_name = sys.argv[2]
 #extent = float(sys.argv[3])
-extent_x = float(sys.argv[5])
-extent_y = float(sys.argv[6])
-exp_nr = sys.argv[7]
-cond_nr = sys.argv[8]
+extent_x = float(sys.argv[3])
+extent_y = float(sys.argv[4])
 
 #delay = float(sys.argv[5])
 vel = 0. #float(sys.argv[6])
@@ -75,12 +73,12 @@ print weight,delay
 
 #here needs to be a part that transfers potentials into poisson rates
 #m_file = open('data/midget_values.data','r+')
-m_file = open('data/'+str(sim_title)+str(sim_title_2)+'/midget_rates_'+str(handle_name)+'_on.data','r+') 
+m_file = open('data/'+str(sim_title)+'/midget_rates_'+str(handle_name)+'_on.data','r+') 
 m_data = np.load(m_file)   
 m_file.close()
 
 #p_file = open('data/parasolic_values.data','r+')
-p_file = open('data/'+str(sim_title)+str(sim_title_2)+'/parasolic_rates_'+str(handle_name)+'_on.data','r+') 
+p_file = open('data/'+str(sim_title)+'/parasolic_rates_'+str(handle_name)+'_on.data','r+') 
 p_data = np.load(p_file)  
 p_file.close()
 
@@ -162,13 +160,13 @@ nest.CopyModel('stdp_synapse','ex') #,{'weight': {'distribution' : 'uniform', 'l
 #cols = 40
 
 #get grid data form previous simulation
-gm_file = open('data/'+str(sim_title)+str(sim_title_2)+'/m_pos_'+handle_name+'.data','r+')
+gm_file = open('data/'+str(sim_title)+'/m_pos_'+handle_name+'.data','r+')
 #gm_file = open('data/test_vid/m_pos_test_vid.data','r+')
 gm_data = np.load(gm_file)  
 gm_file.close()
 gm_data = gm_data.tolist()
 
-gp_file = open('data/'+str(sim_title)+str(sim_title_2)+'/p_pos_'+handle_name+'.data','r+')
+gp_file = open('data/'+str(sim_title)+'/p_pos_'+handle_name+'.data','r+')
 #gp_file = open('data/test_vid/p_pos_test_vid.data','r+')
 gp_data = np.load(gp_file)  
 gp_file.close()
@@ -184,7 +182,7 @@ gm_r_60_pos=[]
 #gm_max=(0.,0.)
 
 #mean, stdv, timelength
-m_noise=[[np.random.normal(0,10,1000) for j in range(len(gm_data[0]))] for i in range(len(gm_data))]
+m_noise=[[np.random.normal(0,10,400) for j in range(len(gm_data[0]))] for i in range(len(gm_data))]
 midget_rates=mmr*midget_rates+m_noise
 
 print 'length:'
@@ -221,7 +219,7 @@ gp_r_60_pos=[]
 #gm_r_120_pos=[]
 
 #mean, stdv, timelength
-p_noise=[[np.random.normal(0,10,1000) for j in range(len(gp_data[0]))] for i in range(len(gp_data))]
+p_noise=[[np.random.normal(0,10,400) for j in range(len(gp_data[0]))] for i in range(len(gp_data))]
 parasolic_rates=pmr*parasolic_rates+p_noise
 
 for i in range(len(gp_data)):
@@ -477,231 +475,456 @@ for n in range(len(MIDs[0])):
 nest.Simulate(200)
 '''
 
+
 #-------------------------------------------------------------------------------------------------------------------------------
-#--------------------------------------------------------------------------------------------------SAVING-AND-PRINTING-THE-OUTPUT
+#-----------------------------------------------------------------------SAVING-AND-PRINTING-THE-OUTPUT
+now = datetime.datetime.now()
 
-max_evs_list = []
-max_evs_list_200 = []
-all_spikes = 0
-all_spikes_200 = 0
-m_all_spikes = 0
-p_all_spikes = 0
-m_all_spikes_200 = 0
-p_all_spikes_200 = 0
-m_all_times=[]
-p_all_times=[]
-m_left_times=[]
-m_right_times=[]
-p_left_times=[]
-p_right_times=[]
-m_ud_times=[]
-p_ud_times=[]
-m_all_times_200=[]
-p_all_times_200=[]
-m_left_times_200=[]
-m_right_times_200=[]
-p_left_times_200=[]
-p_right_times_200=[]
-m_ud_times_200=[]
-p_ud_times_200=[]
+store_sp = []
+s_gids = []
 
-def save_spikes(layer_name,layer,mel,asl,tl):
-    directory = '/home/schrader/Documents/microsaccades/data/'+str(sim_title)+'/network/'+str(sim_nr)
-    sp_file = open(directory+'/'+layer_name+'_'+handle_name+'.data','w+')
-    n_evs_l=[0]
-	times = []
-    for n in range(len(layer[0])):
-        n_evs = nest.GetStatus([layer[0][n]],"n_events")[0]
-        if n_evs>0:
-            #print layer_name+' '+str(layer[0][n])+' '+str(n_evs)+' '+str(nest.GetStatus([layer[0][n]],"events")[0]["times"])
-			t_evs = nest.GetStatus([layer[0][n]],"events")[0]["times"]
-            sp_file.write(str(layer[0][n])+'\t'+str(nest.GetStatus([layer[0][n]],"events")[0]["times"])+'\n')
-			for t in t_evs:
-				times+=[t]
-            n_evs_l+=[n_evs]
-    mel+=[max(n_evs_l)]
-    #if layer_name != ('spikes_midgets' or 'spikes_parasols'):
-    asl+=sum(n_evs_l) 
-	tl=set(times)
-    sp_file.close()
-    print layer_name
-    return 0
+fig = plt.figure()
+ax = plt.subplot(111)
 
-def save_spikes_200(layer_name,layer,mel200,asl200,tl200):
-    directory = '/home/schrader/Documents/microsaccades/data/'+str(sim_title)+'/network/'+str(sim_nr)
-    sp_file = open(directory+'/'+layer_name+'_200_'+handle_name+'.data','w+')
-    n_evs_200_l=[0]
-	times=[]
-    for n in range(len(layer[0])):
-        n_evs = nest.GetStatus([layer[0][n]],"n_events")[0]
-        if n_evs>0:
-            t_evs = nest.GetStatus([layer[0][n]],"events")[0]["times"]
-            t_evs_200 = [t_ev for t_ev in t_evs if t_ev>200.]
-            if len(t_evs_200)>0:
-                #print layer[0][n],t_evs_200
-                sp_file.write(str(layer[0][n])+'\t'+str(t_evs_200)+'\n')
-                n_evs_200_l+=[len(t_evs_200)]
-				for t in t_evs:
-					times+=[t]
-    mel200+=[max(n_evs_200_l)]
-    #if layer_name != ('spikes_midgets' or 'spikes_parasols'):
-    asl200+=sum(n_evs_200_l) 
-	tl200=set(times)
-    sp_file.close()
-    print layer_name + '200'
+firstq = True
+#poisson midget cells
+for q in range(1,121):
+    s = tp.FindNearestElement(out_m,[float(q/2.),7.5])
+    s_gids += [s]
     
-    return 0
+    dSD = nest.GetStatus(s,keys="events")[0]
+    evs = dSD["senders"]
+    ts = dSD["times"]
+    #pyl.figure(2)
+    #pyl.plot(ts, evs, ".")
+    #pyl.show()
+    
+    if evs.any():
+        #ev = nest.GetStatus(mult)[0]['events']
+        #t = ev['times']
+        #r = ev['rate']
 
-GID_file = open('/home/schrader/Documents/microsaccades/data/'+str(sim_title)+'/network/'+str(sim_nr)+'/GID_info.txt','w+')
+        sp = nest.GetStatus(s)[0]['events']['times']
+        #plt.subplot(221)
+        h, e = np.histogram(sp, bins=np.arange(0., float(t_end-t_start)+1., float(t_end-t_start)))
+        store_sp +=[h]
+        #print q,s,sp
+        qa = [q for i in range(h)]
+        if firstq == True:
+            ax.plot(qa,sp,'r.',label='poisson generators')
+            firstq = False
+        else:
+            ax.plot(qa,sp,'r.',label='_nolegend_')
+        
+    else:
+        store_sp +=[0]
 
-#midget
-layerIDs = nest.GetNodes(out_m)
-GID_file.write('midgets \t'+str(layerIDs[0][0])+'\t'+str(layerIDs[0][len(layerIDs[0])-1])+'\n')
-save_spikes('spikes_midgets',layerIDs,max_evs_list,all_spikes,m_all_times)
-save_spikes_200('spikes_midgets',layerIDs,max_evs_list_200,all_spikes_200,m_all_times_200)
-#parasolic
-layerIDs = nest.GetNodes(out_p)
-GID_file.write('parasols \t'+str(layerIDs[0][0])+'\t'+str(layerIDs[0][len(layerIDs[0])-1])+'\n')
-save_spikes('spikes_parasols',layerIDs,max_evs_list,all_spikes,p_all_times)
-save_spikes_200('spikes_parasols',layerIDs,max_evs_list_200,all_spikes_200,p_all_times_200)
-
-#midget rightward motion detectors
-layerIDs = nest.GetNodes(out_m_r_0_left)
-GID_file.write('m_0_left \t'+str(layerIDs[0][0])+'\t'+str(layerIDs[0][len(layerIDs[0])-1])+'\n')
-save_spikes('spikes_m_0_left',layerIDs,max_evs_list,m_all_spikes,m_left_times)
-save_spikes_200('spikes_m_0_left',layerIDs,max_evs_list_200,m_all_spikes_200,m_left_times_200)
-#midget leftward motion detectors
-layerIDs = nest.GetNodes(out_m_r_0_right)
-GID_file.write('m_0_right \t'+str(layerIDs[0][0])+'\t'+str(layerIDs[0][len(layerIDs[0])-1])+'\n')
-save_spikes('spikes_m_0_right',layerIDs,max_evs_list,m_all_spikes,m_right_times)
-save_spikes_200('spikes_m_0_right',layerIDs,max_evs_list_200,m_all_spikes_200,m_right_times_200)
-#midget downward motion detectors 60
-layerIDs = nest.GetNodes(out_m_r_60_up)
-GID_file.write('m_60_up \t'+str(layerIDs[0][0])+'\t'+str(layerIDs[0][len(layerIDs[0])-1])+'\n')
-save_spikes('spikes_m_60_up',layerIDs,max_evs_list,m_all_spikes,m_ud_times)
-save_spikes_200('spikes_m_60_up',layerIDs,max_evs_list_200,m_all_spikes_200,m_ud_times_200)
-#midget upward motion detectors 60
-layerIDs = nest.GetNodes(out_m_r_60_down)
-GID_file.write('m_60_down \t'+str(layerIDs[0][0])+'\t'+str(layerIDs[0][len(layerIDs[0])-1])+'\n')
-save_spikes('spikes_m_60_down',layerIDs,max_evs_list,m_all_spikes,m_ud_times)
-save_spikes_200('spikes_m_60_down',layerIDs,max_evs_list_200,m_all_spikes_200,m_ud_times_200)
-#midget downward motion detectors 120
-layerIDs = nest.GetNodes(out_m_r_120_up)
-GID_file.write('m_120_up \t'+str(layerIDs[0][0])+'\t'+str(layerIDs[0][len(layerIDs[0])-1])+'\n')
-save_spikes('spikes_m_120_up',layerIDs,max_evs_list,m_all_spikes,m_ud_times)
-save_spikes_200('spikes_m_120_up',layerIDs,max_evs_list_200,m_all_spikes_200,m_ud_times_200)
-#midget upward motion detectors 120
-layerIDs = nest.GetNodes(out_m_r_120_down)
-GID_file.write('m_120_down \t'+str(layerIDs[0][0])+'\t'+str(layerIDs[0][len(layerIDs[0])-1])+'\n')
-save_spikes('spikes_m_120_down',layerIDs,max_evs_list,m_all_spikes,m_ud_times)
-save_spikes_200('spikes_m_120_down',layerIDs,max_evs_list_200,m_all_spikes_200,m_ud_times_200)
+m_poisson_max_spikes = max(store_sp)
+if m_poisson_max_spikes == 0:
+    m_poisson_max_spikes = [0]
+print m_poisson_max_spikes
 
 
-#parasolic rightward motion detectors
-layerIDs = nest.GetNodes(out_p_r_0_left)
-GID_file.write('p_0_left \t'+str(layerIDs[0][0])+'\t'+str(layerIDs[0][len(layerIDs[0])-1])+'\n')
-save_spikes('spikes_p_0_left',layerIDs,max_evs_list,p_all_spikes,p_left_times)
-save_spikes_200('spikes_p_0_left',layerIDs,max_evs_list_200,p_all_spikes_200,p_left_times_200)
-#parasolic leftward motion detectors
-layerIDs = nest.GetNodes(out_p_r_0_right)
-GID_file.write('p_0_right \t'+str(layerIDs[0][0])+'\t'+str(layerIDs[0][len(layerIDs[0])-1])+'\n')
-save_spikes('spikes_p_0_right',layerIDs,max_evs_list,p_all_spikes,p_right_times)
-save_spikes_200('spikes_p_0_right',layerIDs,max_evs_list_200,p_all_spikes_200,p_right_times_200)
-#parasolic downward motion detectors 60
-layerIDs = nest.GetNodes(out_p_r_60_up)
-GID_file.write('p_60_up \t'+str(layerIDs[0][0])+'\t'+str(layerIDs[0][len(layerIDs[0])-1])+'\n')
-save_spikes('spikes_p_60_up',layerIDs,max_evs_list,p_all_spikes,p_ud_times)
-save_spikes_200('spikes_p_60_up',layerIDs,max_evs_list_200,p_all_spikes_200,p_ud_times_200)
-#parasolic upward motion detectors 60
-layerIDs = nest.GetNodes(out_p_r_60_down)
-GID_file.write('p_60_down \t'+str(layerIDs[0][0])+'\t'+str(layerIDs[0][len(layerIDs[0])-1])+'\n')
-save_spikes('spikes_p_60_down',layerIDs,max_evs_list,p_all_spikes,p_ud_times)
-save_spikes_200('spikes_p_60_down',layerIDs,max_evs_list_200,p_all_spikes_200,p_ud_times_200)
-#parasolic downward motion detectors 120
-layerIDs = nest.GetNodes(out_p_r_120_up)
-GID_file.write('p_120_up \t'+str(layerIDs[0][0])+'\t'+str(layerIDs[0][len(layerIDs[0])-1])+'\n')
-save_spikes('spikes_p_120_up',layerIDs,max_evs_list,p_all_spikes,p_ud_times)
-save_spikes_200('spikes_p_120_up',layerIDs,max_evs_list_200,p_all_spikes_200,p_ud_times_200)
-#parasolic upward motion detectors 120
-layerIDs = nest.GetNodes(out_p_r_120_down)
-GID_file.write('p_120_down \t'+str(layerIDs[0][0])+'\t'+str(layerIDs[0][len(layerIDs[0])-1])+'\n')
-save_spikes('spikes_p_120_down',layerIDs,max_evs_list,p_all_spikes,p_ud_times)
-save_spikes_200('spikes_p_120_down',layerIDs,max_evs_list_200,p_all_spikes_200,p_ud_times_200)
+#pyl.figure()
+#V_E = nest.GetStatus(s_gids, 'rate')
+#pyl.hist(V_E, bins = 100)
+#pyl.show()
 
-GID_file.close()
-#print max_evs_list
-#print max_evs_list_200
+#midget motion detectors complete
+ms_all_file = open('data/'+sim_title+'/m_max_spikes_all.txt','a+')
+store_sp = []
+s_gids = []
 
-ms_file = open('/home/schrader/Documents/microsaccades/data/'+str(sim_title)+'/network/'+str(sim_nr)+'/m_max_spikes.txt','a+')
-ms_file.write(str(handle_name)+'\t'+str(exp_nr)+'\t'+str(cond_nr)+'\t'+str(max_evs_list[0])+'\t'+str(max_evs_list[2])+'\t'+str(max_evs_list[3])+'\t'+str(max_evs_list[4])+'\t'+str(max_evs_list[5])+'\t'+str(max_evs_list[6])+'\t'+str(max_evs_list[7])+'\t'+str(m_all_spikes)+'\n')
+#midget motion detectors left
+store_sp = []
+s_gids = []
+
+firstq = True
+for q in range(1,121):
+    s = tp.FindNearestElement(out_m_r_0_right,[float(q/2.),7.5])
+    #mult = tp.FindNearestElement(out_m_r_0_multi,[float(q),12.])
+    s_gids += [s]
+    
+    dSD = nest.GetStatus(s,keys="events")[0]
+    evs = dSD["senders"]
+    ts = dSD["times"]
+    #pyl.figure(2)
+    #pyl.plot(ts, evs, ".")
+    #pyl.show()
+    
+    if evs.any():
+        #ev = nest.GetStatus(mult)[0]['events']
+        #t = ev['times']
+        #r = ev['rate']
+
+        sp = nest.GetStatus(s)[0]['events']['times']
+        #plt.subplot(221)
+        h, e = np.histogram(sp, bins=np.arange(0., float(t_end-t_start)+1., float(t_end-t_start)))
+        store_sp +=[h]
+        qa = [q for i in range(h)]
+        if firstq == True:
+            ax.plot(qa,sp,'b+',label='leftward-motion detectors')
+            firstq = False
+        else:
+            ax.plot(qa,sp,'b+',label='_nolegend_')
+
+    else:
+        store_sp +=[0]
+
+max_spikes_right = max(store_sp)
+if max_spikes_right == 0:
+    max_spikes_right = [0]
+print max_spikes_right
+
+#midget motion detectors left
+store_sp = []
+s_gids = []
+
+firstq = True
+for q in range(1,121):
+    s = tp.FindNearestElement(out_m_r_0_left,[float(q/2.),7.5])
+    #mult = tp.FindNearestElement(out_m_r_0_multi,[float(q),12.])
+    s_gids += [s]
+    
+    dSD = nest.GetStatus(s,keys="events")[0]
+    evs = dSD["senders"]
+    ts = dSD["times"]
+    #pyl.figure(2)
+    #pyl.plot(ts, evs, ".")
+    #pyl.show()
+    
+    if evs.any():
+        #ev = nest.GetStatus(mult)[0]['events']
+        #t = ev['times']
+        #r = ev['rate']
+
+        sp = nest.GetStatus(s)[0]['events']['times']
+        #plt.subplot(221)
+        h, e = np.histogram(sp, bins=np.arange(0., float(t_end-t_start)+1., float(t_end-t_start)))
+        store_sp +=[h]
+        qa = [q for i in range(h)]
+        if firstq == True:
+            ax.plot(qa,sp,'kx',label='rightward-motion detectors')
+            firstq = False
+        else:
+            ax.plot(qa,sp,'kx',label='_nolegend_')
+
+    else:
+        store_sp +=[0]
+
+max_spikes_left = max(store_sp)
+if max_spikes_left == 0:
+    max_spikes_left = [0]
+print max_spikes_left
+
+'''
+#midget motion detectors complete
+ms_all_file = open('data/mo_det_cal/m_max_spikes_all.txt','a+')
+store_sp = []
+s_gids = []
+
+firstq = True
+for q in range(1,121):
+    s = tp.FindNearestElement(out_m_r_0,[float(q/2.),7.5])
+    #mult = tp.FindNearestElement(out_m_r_0_multi,[float(q),12.])
+    s_gids += [s]
+    
+    dSD = nest.GetStatus(s,keys="events")[0]
+    evs = dSD["senders"]
+    ts = dSD["times"]
+    #pyl.figure(2)
+    #pyl.plot(ts, evs, ".")
+    #pyl.show()
+    
+    if evs.any():
+        #ev = nest.GetStatus(mult)[0]['events']
+        #t = ev['times']
+        #r = ev['rate']
+
+        sp = nest.GetStatus(s)[0]['events']['times']
+        #plt.subplot(221)
+        h, e = np.histogram(sp, bins=np.arange(0., float(t_end-t_start)+1., float(t_end-t_start)))
+        store_sp +=[h]
+        
+        qa = [q for i in range(h)]
+        if firstq == True:
+            ax.plot(qa,sp,'g*',label='general motion detectors')
+            firstq = False
+        else:
+            ax.plot(qa,sp,'g*',label='_nolegend_')
+        
+        ms_all_file.write(str(weight)+' '+str(delay)+' '+ str(vel)+' '+str(sp)+'\n')
+        ms_all_file.write(str(weight)+' '+str(delay)+' '+ str(vel)+' '+str(h)+'\n')
+        ms_all_file.write(str(weight)+' '+str(delay)+' '+ str(vel)+' '+str(e)+'\n')
+        #plt.plot(t, r, color='b')
+        #plt.step(e[:-1], h , color='b', where='post')
+        #plt.title('PST histogram and firing rates')
+        #plt.ylabel('Spikes per second')
+
+        #plt.subplot(223)
+        #plt.hist(np.diff(sp), bins=np.arange(0., 1.005, 0.02),
+                    #histtype='step', color='b')
+        #plt.title('ISI histogram')
+        #plt.show()
+    else:
+        store_sp +=[0]
+'''
+#plt.title('midget spikes for motion detectors')
+#plt.xlabel('position of neuron in arcmin')
+#plt.ylabel('time $t$ in ms')
+#plt.legend()
+plt.xlim([0,120])
+plt.ylim([0,200])
+
+ax.set_title('midget spikes for motion detectors')
+ax.set_xlabel('position of neuron in arcmin')
+ax.set_ylabel('time $t$ in ms')
+# Shrink current axis's height by 10% on the bottom
+box = ax.get_position()
+ax.set_position([box.x0, box.y0 + box.height * 0.1,
+                 box.width, box.height * 0.9])
+
+
+# Put a legend below current axis
+ax.legend(loc='upper center', bbox_to_anchor=(0.5, -0.12), 
+          fancybox=False, fontsize=8, shadow=False, ncol=2)
+
+plt.savefig('img/'+sim_title+'/x_t_midgets_'+handle_name+'.pdf')
+out= '/home/schrader/Documents/microsaccades/img/'+ str(now.year) + '_' + str(now.month) + '_' + str(now.day) + '/x_t_midgets_' + str(handle_name) + '_' + str(now.hour) + '_' + str(now.minute) + '_' + str(now.second) + '.pdf'
+plt.savefig(out)
+plt.show()
+plt.close()
+
+
+
+ms_all_file.close()
+#plt.show()
+'''
+max_spikes = max(store_sp)
+if max_spikes == 0:
+    max_spikes = [0]
+print max_spikes
+'''
+
+
+ms_file = open('data/'+sim_title+'/m_max_spikes.txt','a+')
+ms_file.write(str(weight)+' '+str(delay)+' '+ str(vel)+' '+ str(max_spikes[0])+' '+ str(m_poisson_max_spikes[0])+' '+ str(max_spikes_left[0])+' '+ str(max_spikes_right[0])+'\n')
 ms_file.close()
-ps_file = open('/home/schrader/Documents/microsaccades/data/'+str(sim_title)+'/network/'+str(sim_nr)+'/p_max_spikes.txt','a+')
-ps_file.write(str(handle_name)+'\t'+str(exp_nr)+'\t'+str(cond_nr)+'\t'+str(max_evs_list[1])+'\t'+str(max_evs_list[8])+'\t'+str(max_evs_list[9])+'\t'+str(max_evs_list[10])+'\t'+str(max_evs_list[11])+'\t'+str(max_evs_list[12])+'\t'+str(max_evs_list[13])+'\t'+str(p_all_spikes)+'\n')
+
+
+
+
+#parasol poisson cells-------------------------------------------------------------------------------------------------------------
+
+store_sp=[]
+
+fig = plt.figure()
+ax = plt.subplot(111)
+
+firstq = True
+for q in range(1,31):
+    s = tp.FindNearestElement(out_p,[4.*float(q/2.),7.5])
+    #mult = tp.FindNearestElement(out_p_r_0_multi,[4.*float(q),12.])
+    s_gids += [s]
+    
+    dSD = nest.GetStatus(s,keys="events")[0]
+    evs = dSD["senders"]
+    ts = dSD["times"]
+    #pyl.figure(2)
+    #pyl.plot(ts, evs, ".")
+    #pyl.show()
+    
+    if evs.any():
+        #ev = nest.GetStatus(mult)[0]['events']
+        #t = ev['times']
+        #r = ev['rate']
+
+        sp = nest.GetStatus(s)[0]['events']['times']
+        #plt.subplot(221)
+        h, e = np.histogram(sp, bins=np.arange(0., float(t_end-t_start)+1., float(t_end-t_start)))
+        store_sp +=[h]
+        qa = [4.*q for i in range(h)]
+        if firstq == True:
+            ax.plot(qa,sp,'r.',label='poisson generators')
+            firstq = False
+        else:
+            ax.plot(qa,sp,'r.',label='_nolegend_')
+    else:
+        store_sp +=[0]
+
+
+#plt.show()
+p_poisson_max_spikes = max(store_sp)
+if p_poisson_max_spikes == 0:
+    p_poisson_max_spikes = [0]
+print p_poisson_max_spikes
+
+#midget motion detectors right
+store_sp=[]
+
+firstq = True
+for q in range(1,31):
+    s = tp.FindNearestElement(out_p_r_0_right,[4.*float(q/2.),7.5])
+    #mult = tp.FindNearestElement(out_p_r_0_multi,[4.*float(q),12.])
+    s_gids += [s]
+    
+    dSD = nest.GetStatus(s,keys="events")[0]
+    evs = dSD["senders"]
+    ts = dSD["times"]
+    #pyl.figure(2)
+    #pyl.plot(ts, evs, ".")
+    #pyl.show()
+    
+    if evs.any():
+        #ev = nest.GetStatus(mult)[0]['events']
+        #t = ev['times']
+        #r = ev['rate']
+
+        sp = nest.GetStatus(s)[0]['events']['times']
+        #plt.subplot(221)
+        h, e = np.histogram(sp, bins=np.arange(0., float(t_end-t_start)+1., float(t_end-t_start)))
+        store_sp +=[h]
+        qa = [4*q for i in range(h)]
+        if firstq == True:
+            ax.plot(qa,sp,'b+',label='leftward-motion detectors')
+            firstq = False
+        else:
+            ax.plot(qa,sp,'b+',label='_nolegend_')
+    else:
+        store_sp +=[0]
+
+
+max_spikes_right = max(store_sp)
+if max_spikes_right == 0:
+    max_spikes_right = [0]
+print max_spikes_right
+
+#midget motion detectors left
+store_sp=[]
+
+firstq = True
+for q in range(1,31):
+    s = tp.FindNearestElement(out_p_r_0_left,[4.*float(q/2.),7.5])
+    #mult = tp.FindNearestElement(out_p_r_0_multi,[4.*float(q),12.])
+    s_gids += [s]
+    
+    dSD = nest.GetStatus(s,keys="events")[0]
+    evs = dSD["senders"]
+    ts = dSD["times"]
+    #pyl.figure(2)
+    #pyl.plot(ts, evs, ".")
+    #pyl.show()
+    
+    if evs.any():
+        #ev = nest.GetStatus(mult)[0]['events']
+        #t = ev['times']
+        #r = ev['rate']
+
+        sp = nest.GetStatus(s)[0]['events']['times']
+        #plt.subplot(221)
+        h, e = np.histogram(sp, bins=np.arange(0., float(t_end-t_start)+1., float(t_end-t_start)))
+        store_sp +=[h]
+        qa = [4*q for i in range(h)]
+        if firstq == True:
+            ax.plot(qa,sp,'kx',label='rightward-motion detectors')
+            firstq = False
+        else:
+            ax.plot(qa,sp,'kx',label='_nolegend_')
+    else:
+        store_sp +=[0]
+
+
+max_spikes_left = max(store_sp)
+if max_spikes_left == 0:
+    max_spikes_left = [0]
+print max_spikes_left
+
+'''
+#midget motion detectors complete
+ps_all_file = open('data/'+sim_title+'/p_max_spikes_all.txt','a+')
+
+store_sp=[]
+
+firstq = True
+for q in range(1,31):
+    s = tp.FindNearestElement(out_p_r_0,[4.*float(q/2.),7.5])
+    #mult = tp.FindNearestElement(out_p_r_0_multi,[4.*float(q),12.])
+    s_gids += [s]
+    
+    dSD = nest.GetStatus(s,keys="events")[0]
+    evs = dSD["senders"]
+    ts = dSD["times"]
+    #pyl.figure(2)
+    #pyl.plot(ts, evs, ".")
+    #pyl.show()
+    
+    if evs.any():
+        #ev = nest.GetStatus(mult)[0]['events']
+        #t = ev['times']
+        #r = ev['rate']
+
+        sp = nest.GetStatus(s)[0]['events']['times']
+        #plt.subplot(221)
+        h, e = np.histogram(sp, bins=np.arange(0., float(t_end-t_start)+1., float(t_end-t_start)))
+        store_sp +=[h]
+        qa = [4*q for i in range(h)]
+        if firstq == True:
+            ax.plot(qa,sp,'g*',label='general motion detectors')
+            firstq = False
+        else:
+            ax.plot(qa,sp,'g*',label='_nolegend_')
+        ps_all_file.write(str(weight)+' '+str(delay)+' '+ str(vel)+' '+str(sp)+'\n')
+        ps_all_file.write(str(weight)+' '+str(delay)+' '+ str(vel)+' '+str(h)+'\n')
+        ps_all_file.write(str(weight)+' '+str(delay)+' '+ str(vel)+' '+str(e)+'\n')
+        #plt.plot(t, r, color='b')
+        #plt.step(e[:-1], h , color='b', where='post')
+        #plt.title('PST histogram and firing rates')
+        #plt.ylabel('Spikes per second')
+
+        #plt.subplot(223)
+        #plt.hist(np.diff(sp), bins=np.arange(0., 1.005, 0.02),
+                    #histtype='step', color='b')
+        #plt.title('ISI histogram')
+        #plt.show()
+    else:
+        store_sp +=[0]
+
+ps_all_file.close()
+#plt.show()
+max_spikes = max(store_sp)
+if max_spikes == 0:
+    max_spikes = [0]
+print max_spikes
+'''
+print weight,delay
+
+#plt.title('midget spikes for motion detectors')
+#plt.xlabel('position of neuron in arcmin')
+#plt.ylabel('time $t$ in ms')
+#plt.legend()
+plt.xlim([0,120])
+plt.ylim([0,200])
+
+ax.set_title('parasolic spikes for motion detectors')
+ax.set_xlabel('position of neuron in arcmin')
+ax.set_ylabel('time $t$ in ms')
+# Shrink current axis's height by 10% on the bottom
+box = ax.get_position()
+ax.set_position([box.x0, box.y0 + box.height * 0.1,
+                 box.width, box.height * 0.9])
+
+
+# Put a legend below current axis
+ax.legend(loc='upper center', bbox_to_anchor=(0.5, -0.12), 
+          fancybox=False, fontsize=8, shadow=False, ncol=2)
+
+plt.savefig('img/'+sim_title+'/x_t_parasols_'+handle_name+'.pdf')
+out= '/home/schrader/Documents/microsaccades/img/'+ str(now.year) + '_' + str(now.month) + '_' + str(now.day) + '/x_t_parasols_' + str(handle_name) + '_' + str(now.hour) + '_' + str(now.minute) + '_' + str(now.second) + '.pdf'
+plt.savefig(out)
+plt.show()
+plt.close()
+
+k = (delay,vel,max_spikes)
+ps_file = open('data/'+sim_title+'/p_max_spikes.txt','a+')
+ps_file.write(str(weight)+' '+str(delay)+' '+ str(vel)+' '+ str(max_spikes[0])+' '+str(p_poisson_max_spikes[0])+' '+ str(max_spikes_left[0])+' '+ str(max_spikes_right[0])+'\n')
 ps_file.close()
-
-ms_file = open('/home/schrader/Documents/microsaccades/data/'+str(sim_title)+'/network/'+str(sim_nr)+'/m_spikes_lr.txt','a+')
-ms_file.write(str(handle_name)+'\t'+str(exp_nr)+'\t'+str(cond_nr)+'\t'+str(len(m_left_times))+'\t'+str(len(m_right_times))+'\t'+str(len(m_left_times)+len(m_right_times))+'\t'+'\n')
-ms_file.close()
-ms_file = open('/home/schrader/Documents/microsaccades/data/'+str(sim_title)+'/network/'+str(sim_nr)+'/m_spike_times_lr.txt','a+')
-ms_file.write(str(handle_name)+'\t'+str(exp_nr)+'\t'+str(cond_nr)+'\t'+str(m_left_times)+'\t'+str(m_right_times)+'\n')
-ms_file.close()
-ps_file = open('/home/schrader/Documents/microsaccades/data/'+str(sim_title)+'/network/'+str(sim_nr)+'/p_spikes_lr.txt','a+')
-ps_file.write(str(handle_name)+'\t'+str(exp_nr)+'\t'+str(cond_nr)+'\t'+str(len(p_left_times))+'\t'+str(len(p_right_times))+'\t'+str(len(p_left_times)+len(p_right_times))+'\t'+'\n')
-ps_file.close()
-ps_file = open('/home/schrader/Documents/microsaccades/data/'+str(sim_title)+'/network/'+str(sim_nr)+'/p_spike_times_lr.txt','a+')
-ps_file.write(str(handle_name)+'\t'+str(exp_nr)+'\t'+str(cond_nr)+'\t'+str(p_left_times)+'\t'+str(p_right_times)+'\n')
-ps_file.close()
-
-ms_file_200 = open('/home/schrader/Documents/microsaccades/data/'+str(sim_title)+'/network/'+str(sim_nr)+'/m_max_spikes_200.txt','a+')
-ms_file_200.write(str(handle_name)+'\t'+str(exp_nr)+'\t'+str(cond_nr)+'\t'+str(max_evs_list_200[0])+'\t'+str(max_evs_list_200[2])+'\t'+str(max_evs_list_200[3])+'\t'+str(max_evs_list_200[4])+'\t'+str(max_evs_list_200[5])+'\t'+str(max_evs_list_200[6])+'\t'+str(max_evs_list_200[7])+'\t'+str(m_all_spikes_200)+'\n')
-ms_file_200.close()
-ps_file_200 = open('/home/schrader/Documents/microsaccades/data/'+str(sim_title)+'/network/'+str(sim_nr)+'/p_max_spikes_200.txt','a+')
-ps_file_200.write(str(handle_name)+'\t'+str(exp_nr)+'\t'+str(cond_nr)+'\t'+str(max_evs_list_200[1])+'\t'+str(max_evs_list_200[8])+'\t'+str(max_evs_list_200[9])+'\t'+str(max_evs_list_200[10])+'\t'+str(max_evs_list_200[11])+'\t'+str(max_evs_list_200[12])+'\t'+str(max_evs_list_200[13])+'\t'+str(p_all_spikes_200)+'\n')
-ps_file_200.close()
-
-ms_200_file = open('/home/schrader/Documents/microsaccades/data/'+str(sim_title)+'/network/'+str(sim_nr)+'/m_spikes_lr_200.txt','a+')
-ms_200_file.write(str(handle_name)+'\t'+str(exp_nr)+'\t'+str(cond_nr)+'\t'+str(len(m_left_times))+'\t'+str(len(m_right_times))+'\t'+str(len(m_left_times)+len(m_right_times))+'\t'+'\n')
-ms_200_file.close()
-ms_200_file = open('/home/schrader/Documents/microsaccades/data/'+str(sim_title)+'/network/'+str(sim_nr)+'/m_spike_times_lr_200.txt','a+')
-ms_200_file.write(str(handle_name)+'\t'+str(exp_nr)+'\t'+str(cond_nr)+'\t'+str(m_left_times)+'\t'+str(m_right_times)+'\n')
-ms_200_file.close()
-ps_200_file = open('/home/schrader/Documents/microsaccades/data/'+str(sim_title)+'/network/'+str(sim_nr)+'/p_spikes_lr_200.txt','a+')
-ps_200_file.write(str(handle_name)+'\t'+str(exp_nr)+'\t'+str(cond_nr)+'\t'+str(len(p_left_times))+'\t'+str(len(p_right_times))+'\t'+str(len(p_left_times)+len(p_right_times))+'\t'+'\n')
-ps_200_file.close()
-ps_200_file = open('/home/schrader/Documents/microsaccades/data/'+str(sim_title)+'/network/'+str(sim_nr)+'/p_spike_times_lr_200.txt','a+')
-ps_200_file.write(str(handle_name)+'\t'+str(exp_nr)+'\t'+str(cond_nr)+'\t'+str(p_left_times)+'\t'+str(p_right_times)+'\n')
-ps_200_file.close()
-
-print 'finished'
-
-midgets = 0
-parasols = 0
-m_reichardt_0_left = 0
-m_reichardt_0_right = 0
-m_reichardt_60_up = 0
-m_reichardt_60_down = 0
-m_reichardt_120_up = 0
-m_reichardt_120_down = 0
-p_reichardt_0_left = 0
-p_reichardt_0_right = 0
-p_reichardt_60_up = 0
-p_reichardt_60_down = 0
-p_reichardt_120_up = 0
-p_reichardt_120_down = 0
-
-out_m = 0
-out_p = 0
-out_m_r_0_left = 0
-out_m_r_0_right = 0
-out_m_r_60_down = 0
-out_m_r_60_up = 0
-out_m_r_120_down = 0
-out_m_r_120_up = 0
-out_p_r_0_left = 0
-out_p_r_0_right = 0
-out_p_r_60_up = 0
-out_p_r_60_down = 0
-out_p_r_120_up = 0
-out_p_r_120_down = 0
-
-sys.exit()

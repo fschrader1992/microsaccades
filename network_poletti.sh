@@ -34,7 +34,7 @@ do
     python ms_network.py poletti2010/exp2/cond2/${a}_8_pi_arc exp2_cond2_${a}_8_pi_arc 121. 121.
     python ms_network.py poletti2010/exp2/cond4/${a}_8_pi_arc exp2_cond4_${a}_8_pi_arc 121. 121.
     python ms_network.py poletti2010/exp2/cond6/${a}_8_pi_arc exp2_cond6_${a}_8_pi_arc 121. 121.
-    python ms_network.py poletti2010/exp2/cond7/${a}_8_pi_arc exp2_cond7_${a}_8_pi_arc 121. 121.
-    python ms_network.py poletti2010/exp2/cond8/${a}_8_pi_arc exp2_cond8_${a}_8_pi_arc 121. 121.
+    python ms_network.py poletti2010/exp2/cond7/${a}_8_pi_arc exp2_cond7_${a}_8_pi_arc 141. 141.
+    python ms_network.py poletti2010/exp2/cond8/${a}_8_pi_arc exp2_cond8_${a}_8_pi_arc 141. 141.
 
 done

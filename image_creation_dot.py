@@ -7,11 +7,11 @@ import os
 
 #---------------------------------------------------------------------------------------IMAGE-CREATION
 
-image_size = 120 #280
-image_height = 30
+image_size = 30 #280
+image_height = 120
 radius = 4. #dot size of 4arcmin -> 8px
 rect_size = 110. #size of inner radius 
-vel = 0.3 #0.06 #velocity is 30 arcmin/s -> 60px/1000ms
+vel = 0.06 #velocity is 30 arcmin/s -> 60px/1000ms
 
 suff = sys.argv[1]
 vel_on = int(sys.argv[2])
@@ -40,7 +40,7 @@ tl_x, tl_y = sigma*np.random.multivariate_normal(mean, cov, film_length).T
 d_data = open(str(file_location)+'/displacement.data','w+')
 np.save(d_data, (tl_x, tl_y))
 d_data.close()
-pos = (image_height/2.+0.5,0.5) #image_size/2+0.5)
+pos = (5.,image_size/2.-0.5)
 center = (image_height/2.-0.5,image_size/2.-0.5) #for rectangle
 
 #loop through the 
@@ -63,12 +63,12 @@ for f in range(film_length):
         center = (center[0]+tl_y[f],center[1]+tl_x[f])
     #------------------------------------------
     
-    for i in range(image_size):
+    for i in range(image_height):
         for j in range(image_size):
             dist = np.sqrt((float(i)-pos[0])*(float(i)-pos[0])+(float(j)-pos[1])*(float(j)-pos[1]))
             if dist <= 3.5:
                 canvas[i,j] = 1
-            elif 3.5 < dist and dist  < 4.5:
+            elif 3.5 < dist and dist < 4.5:
                 canvas[i,j] = 4.5 - dist
             #rectangle-(exp2)--------------------------
             if rect==1:
@@ -87,7 +87,7 @@ for f in range(film_length):
     plt.close()
     '''
     fig = plt.figure()
-    fig.set_size_inches(1,0.25)
+    fig.set_size_inches(0.25,1)
     ax = plt.Axes(fig, [0., 0., 1., 1.])
     ax.set_axis_off()
     fig.add_axes(ax)
@@ -113,7 +113,7 @@ for f in range(film_length):
     '''
     
     fig = plt.figure()
-    fig.set_size_inches(1,0.25)
+    fig.set_size_inches(0.25,1)
     ax = plt.Axes(fig, [0., 0., 1., 1.])
     ax.set_axis_off()
     fig.add_axes(ax)

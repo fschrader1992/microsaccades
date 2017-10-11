@@ -12,12 +12,53 @@ import fileinput
 import os.path
 import sys
 import colorsys
+import datetime
 from scipy.optimize import curve_fit
 
 import numpy as np
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 
+pgf_with_rc_fonts = {"font.family": "serif","font.serif": [],"font.sans-serif": []}
+plt.rcParams.update(pgf_with_rc_fonts)
+
+now = datetime.datetime.now()
+
+def lin_func(x, a, b):
+    return a *x + b
+def e_func(x, a, b, c):
+    return a * np.exp(-b * x) + c
+def log_func(x, a, b, c):
+    return a * np.log(b * x) + c
+
+#for the I_E curve
+data = np.loadtxt('data/mo_det_cal/average_spiking_I_e_no_zeros.txt')
+#delay
+I_e = data[:,0]
+STD_I_e = 1000./data[:,1]
+IST = 1000./data[:,2]
+#IST_err = data[:,3]
+
+fig = plt.figure(1)	
+fig.set_size_inches(6,4)
+ax = fig.add_subplot(111)
+ax.set_xlabel(r'Constant external input current $I_e$ in pA')
+ax.set_ylabel(r'spiking frequency $f_S$ in Hz')
+ax.plot(I_e,IST,'k--',label='spiking frequency') 
+ax.plot(I_e,IST,'kx') 
+
+#popt, pcov = curve_fit(lin_func, I_e, IST) #, bounds=(0, [3., 2.])
+#ax.plot(I_e, lin_func(I_e, *popt), 'k-', label='fit')
+
+plt.savefig('img/mo_det_cal/I_e_response_curve.pdf')
+plt.savefig('img/mo_det_cal/I_e_response_curve.pgf')
+out= 'img/'+ str(now.year) + '_' + str(now.month) + '_' + str(now.day) + '/' + str(now.hour) + '_' + str(now.minute) + '_' + str(now.second) + '_I_e_response_curve.pdf'
+plt.savefig(out)
+plt.show()
+plt.close()
+#plt.show()
+
+'''
 data = np.loadtxt('data/mo_det_cal/m_max_spikes.txt')
 #delay
 weights = data[:,0]
@@ -37,10 +78,16 @@ for w in ws:
         #print 's '+str(s)
         vel=[]
         sp=[]
+        sp_ps=[]
+        sp_r=[]
+        sp_l=[]
         for l in data:
             if l[0]==w and l[1]==s:
                 vel+=[l[2]]
                 sp+=[l[3]]
+                sp_ps+=[l[5]]
+                sp_r+=[l[5]]
+                sp_l+=[l[6]]
             #velocity
             #vel = data[weis==w,2]
             #spike number
@@ -60,6 +107,8 @@ for w in ws:
         ax.set_xlabel('velocity in arcmin/s')
         ax.set_ylabel('maximum firingrate in spikes/s')
         ax.plot(vel,sp,'rx')
+        ax.plot(vel,sp_r,'bx')
+        ax.plot(vel,sp_l,'gx')
         #print vel
         #print sp
         plt.savefig('img/mo_det_cal/midget_resp_d' + str(int(s)) + '_w'+str(int(w))+'.pdf')
@@ -81,10 +130,16 @@ for w in ws:
         #print 's '+str(s)
         vel=[]
         sp=[]
+        sp_ps=[]
+        sp_r=[]
+        sp_l=[]
         for l in data:
             if l[0]==w and l[1]==s:
                 vel+=[l[2]]
                 sp+=[l[3]]
+                sp_ps+=[l[5]]
+                sp_r+=[l[5]]
+                sp_l+=[l[6]]
             #velocity
             #vel = data[weis==w,2]
             #spike number
@@ -97,7 +152,9 @@ for w in ws:
         #print v
         dels_p+=[s]
         som_p+=[v]
-        '''
+'''
+        
+'''
         #velocity
         vel = data[weis==w,2]
         #spike number
@@ -110,13 +167,16 @@ for w in ws:
         #print v
         dels_p+=[s]
         som_p+=[v[0]]
-        '''
+'''
+'''
         fig = plt.figure(1)
         ax = fig.add_subplot(111)
         ax.set_title('parasols, delay '+str(s)+', weight '+str(w))
         ax.set_xlabel('velocity in arcmin/s')
         ax.set_ylabel('maximum firingrate in spikes/s')
-        ax.plot(vel,sp,'bx')
+        ax.plot(vel,sp,'rx')
+        ax.plot(vel,sp_r,'bx')
+        ax.plot(vel,sp_l,'gx')
         plt.savefig('img/mo_det_cal/parasol_resp_d' + str(int(s)) + '_w'+str(int(w))+'.pdf')
         plt.close()
         
@@ -144,3 +204,4 @@ for w in ws:
     plt.savefig('img/mo_det_cal/responses_w'+str(int(w))+'.pdf')
     plt.close()
     #plt.show()
+'''

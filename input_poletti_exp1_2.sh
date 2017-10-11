@@ -153,8 +153,8 @@ do
         python image_creation_dot.py exp2/cond2/${a}_8_pi_arc/${i} 1 $a 1 1 1 
         python image_creation_dot.py exp2/cond4/${a}_8_pi_arc/${i} 1 $a 0 1 1
         python image_creation_dot.py exp2/cond6/${a}_8_pi_arc/${i} 1 $a 0 1 0
-        python image_creation_dot_7_8.py exp2/cond6/${a}_8_pi_arc/${i} 0 $a 1 1 1 1
-        python image_creation_dot_7_8.py exp2/cond6/${a}_8_pi_arc/${i} 1 $a 1 1 1 1
+        python image_creation_dot_7_8.py exp2/cond7/${a}_8_pi_arc/${i} 0 $a 1 1 1 1
+        python image_creation_dot_7_8.py exp2/cond8/${a}_8_pi_arc/${i} 1 $a 1 1 1 1
         
     done
     

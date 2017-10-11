@@ -9,29 +9,30 @@ from microsaccades_functions import *
 #---------------------------------------------------------------------------------------IMAGE-CREATION
 
 framerate = 3. #get some fancy frequency calculation
-stripe_width = 18
-gap = 18
-image_size = 280
+stripe_width = 16
+gap = 16
+image_height = 30
+image_width = 240
 degrees = 0
 
 degrees = sys.argv[1]
 
-file_location = "video/img_input/phases_0fr" + str(degrees) + "deg_36px_only_border"
+file_location = "video/img_input/phases_0fr" + str(degrees) + "deg_32px_only_border"
 
 degrees = float(degrees)
 
 film_length = 1000
 
-canvas = np.zeros((image_size, image_size))
+canvas = np.zeros((image_height, image_width))
 current_col = 0
-while current_col < image_size:
+while current_col < image_width:
     #for only border
-    if current_col + stripe_width + gap  <= image_size-1:
+    if current_col + stripe_width + gap  <= image_width-1:
         canvas[:, current_col] = 1
         current_col += stripe_width + gap
     else:
         canvas[:, current_col:] = 1
-        current_col = image_size
+        current_col = image_width
     '''
     #for mixxed grating
     if current_col + stripe_width + gap  <= image_size-1:
@@ -45,12 +46,12 @@ while current_col < image_size:
         current_col = image_size
     '''
 fig = plt.figure()
-fig.set_size_inches(2,2)
+fig.set_size_inches(2.,0.25)
 ax = plt.Axes(fig, [0., 0., 1., 1.])
 ax.set_axis_off()
 fig.add_axes(ax)
 ax.imshow(canvas, cmap='gray')
-plt.savefig(file_location + "/first.png",  dpi = 170)
+plt.savefig(file_location + "/first.png",  dpi = 120)
 
 img = cv2.imread(file_location + "/first.png",0)
 rows,cols = img.shape
@@ -62,7 +63,7 @@ d_file.close()
 for f in range(film_length):
     #------------------------------------------------------------------------------NORMAL-DISPLACEMENT
     fig = plt.figure()
-    fig.set_size_inches(2, 2)
+    fig.set_size_inches(2.33,0.25)
     ax = plt.Axes(fig, [0., 0., 1., 1.])
     ax.set_axis_off()
     fig.add_axes(ax)
@@ -73,8 +74,8 @@ for f in range(film_length):
     
     
     #save to file, comment for additional rotation
-    tlFig = tlFig[20:260,20:260]
-    fig.set_size_inches(2, 2)
+    tlFig = tlFig[0:30,64:184]
+    fig.set_size_inches(1,0.25)
     
     plt.imshow(tlFig,cmap='gray')
     plt.savefig(file_location + "/second"+str(f+1).zfill(3)+".png",  dpi = 120)
