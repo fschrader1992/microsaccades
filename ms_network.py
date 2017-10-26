@@ -44,22 +44,35 @@ def set_I_e_random(layer):
 extent = 121.
 delay = 30. # speed of point in poletti 2010 -> maybe increase a bit for more reacton later on
 
-t_start = 0
-t_end = 1000 #1000
+t_start = 200
+t_end = 400 #1000
 
 weight = 40.
 weight_std = 1.5
 #I_E = 410.
 
-sim_title = sys.argv[1]
-sim_title_2 = sys.argv[2]
-sim_nr = sys.argv[3]
-handle_name = sys.argv[4]
-#extent = float(sys.argv[3])
-extent_x = float(sys.argv[5])
-extent_y = float(sys.argv[6])
-exp_nr = sys.argv[7]
-cond_nr = sys.argv[8]
+if len(sys.argv)==10:
+    sim_title = sys.argv[1]
+    sim_title_2 = sys.argv[2]
+    sim_nr = sys.argv[3]
+    handle_name = sys.argv[4]
+    #extent = float(sys.argv[3])
+    extent_x = float(sys.argv[5])
+    extent_y = float(sys.argv[6])
+    exp_nr = sys.argv[7]
+    cond_nr = sys.argv[8]
+    delay = float(sys.argv[9])
+else:
+    sim_title = sys.argv[1]
+    sim_nr = sys.argv[2]
+    handle_name = sys.argv[3]
+    #extent = float(sys.argv[3])
+    extent_x = float(sys.argv[4])
+    extent_y = float(sys.argv[5])
+    exp_nr = sys.argv[6]
+    cond_nr = sys.argv[7]
+    delay = float(sys.argv[8])
+    sim_title_2 = ''
 
 #delay = float(sys.argv[5])
 vel = 0. #float(sys.argv[6])
@@ -184,7 +197,7 @@ gm_r_60_pos=[]
 #gm_max=(0.,0.)
 
 #mean, stdv, timelength
-m_noise=[[np.random.normal(0,10,1000) for j in range(len(gm_data[0]))] for i in range(len(gm_data))]
+m_noise=[[np.random.normal(0,10,t_end) for j in range(len(gm_data[0]))] for i in range(len(gm_data))]
 midget_rates=mmr*midget_rates+m_noise
 
 print 'length:'
@@ -221,7 +234,7 @@ gp_r_60_pos=[]
 #gm_r_120_pos=[]
 
 #mean, stdv, timelength
-p_noise=[[np.random.normal(0,10,1000) for j in range(len(gp_data[0]))] for i in range(len(gp_data))]
+p_noise=[[np.random.normal(0,10,t_end) for j in range(len(gp_data[0]))] for i in range(len(gp_data))]
 parasolic_rates=pmr*parasolic_rates+p_noise
 
 for i in range(len(gp_data)):
@@ -509,20 +522,20 @@ def save_spikes(layer_name,layer,mel,asl,tl):
     directory = '/home/schrader/Documents/microsaccades/data/'+str(sim_title)+'/network/'+str(sim_nr)
     sp_file = open(directory+'/'+layer_name+'_'+handle_name+'.data','w+')
     n_evs_l=[0]
-	times = []
+    times = []
     for n in range(len(layer[0])):
         n_evs = nest.GetStatus([layer[0][n]],"n_events")[0]
         if n_evs>0:
             #print layer_name+' '+str(layer[0][n])+' '+str(n_evs)+' '+str(nest.GetStatus([layer[0][n]],"events")[0]["times"])
-			t_evs = nest.GetStatus([layer[0][n]],"events")[0]["times"]
+            t_evs = nest.GetStatus([layer[0][n]],"events")[0]["times"]
             sp_file.write(str(layer[0][n])+'\t'+str(nest.GetStatus([layer[0][n]],"events")[0]["times"])+'\n')
-			for t in t_evs:
-				times+=[t]
+            for t in t_evs:
+                times+=[t]
             n_evs_l+=[n_evs]
     mel+=[max(n_evs_l)]
     #if layer_name != ('spikes_midgets' or 'spikes_parasols'):
     asl+=sum(n_evs_l) 
-	tl=set(times)
+    tl=set(times)
     sp_file.close()
     print layer_name
     return 0
@@ -531,7 +544,7 @@ def save_spikes_200(layer_name,layer,mel200,asl200,tl200):
     directory = '/home/schrader/Documents/microsaccades/data/'+str(sim_title)+'/network/'+str(sim_nr)
     sp_file = open(directory+'/'+layer_name+'_200_'+handle_name+'.data','w+')
     n_evs_200_l=[0]
-	times=[]
+    times=[]
     for n in range(len(layer[0])):
         n_evs = nest.GetStatus([layer[0][n]],"n_events")[0]
         if n_evs>0:
@@ -541,12 +554,12 @@ def save_spikes_200(layer_name,layer,mel200,asl200,tl200):
                 #print layer[0][n],t_evs_200
                 sp_file.write(str(layer[0][n])+'\t'+str(t_evs_200)+'\n')
                 n_evs_200_l+=[len(t_evs_200)]
-				for t in t_evs:
-					times+=[t]
+                for t in t_evs:
+                    times+=[t]
     mel200+=[max(n_evs_200_l)]
     #if layer_name != ('spikes_midgets' or 'spikes_parasols'):
     asl200+=sum(n_evs_200_l) 
-	tl200=set(times)
+    tl200=set(times)
     sp_file.close()
     print layer_name + '200'
     
