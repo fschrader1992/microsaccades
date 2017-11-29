@@ -133,8 +133,8 @@ nest.CopyModel("iaf_cond_alpha", "std_iaf_cond_alpha",{'tau_syn_ex': 1.0, 'V_res
 nest.CopyModel("iaf_cond_alpha", "tr8_iaf_cond_alpha",{'tau_syn_ex': 1.0, 'V_reset': -70.0, 't_ref': 8.})
 nest.CopyModel("spike_detector", "my_spike_detector",{'withtime': True, 'withgid': True})
 nest.CopyModel('static_synapse','ex') #,{'weight': {'distribution' : 'uniform', 'low': .1, 'high': .2}})
-nest.CopyModel('static_synapse','inh_400_delay', {'weight': -400., 'delay': 15.,}) #-400.,}) 
-nest.CopyModel('static_synapse','ex_50', {'weight': 50.,}) #50
+nest.CopyModel('static_synapse','inh_400', {'weight': -400.,}) #-400.,}) 
+nest.CopyModel('static_synapse','ex_50_delay', {'weight': 50., 'delay': 12.,}) #50
 #stimes=[]
 #stimes+=[i*20.0+10. for i in range(10)]
 nest.CopyModel('spike_generator', 'my_spike_generator')
@@ -178,6 +178,12 @@ for i in range(len(gp_data)):
 OGIDs = open('/home/schrader/Documents/microsaccades/data/'+str(sim_title)+'network/'+str(sim_nr)+'/GID_info.txt','r+')
 
 layers=[] #list of layers
+layers2=[]
+layers3=[]
+gmdet_layers=[]
+out_gmdet_layers=[]
+gmn_layers=[]
+out_gmn_layers=[]
 gmc_layers=[] #list of global motion corrected layers
 out_layers=[]
 layer_names = ['parasols','p_0_left','p_0_right','p_60_up','p_60_down','p_120_up','p_120_down']
@@ -185,11 +191,15 @@ layer_names = ['parasols','p_0_left','p_0_right','p_60_up','p_60_down','p_120_up
 
 for ln in layer_names:
     lr=tp.CreateLayer({'extent' : [extent_x,extent_y], 'center' : [center_x,center_y], 'positions' : gp_pos, 'elements': 'my_spike_generator', 'edge_wrap': True})
+    lr2=tp.CreateLayer({'extent' : [extent_x,extent_y], 'center' : [center_x,center_y], 'positions' : gp_pos, 'elements': 'my_spike_generator', 'edge_wrap': True})
+    lr3=tp.CreateLayer({'extent' : [extent_x,extent_y], 'center' : [center_x,center_y], 'positions' : gp_pos, 'elements': 'my_spike_generator', 'edge_wrap': True})
     if sar==True:
         l_file = open('/home/schrader/Documents/microsaccades/data/'+str(sim_title)+'network/'+str(sim_nr)+'/spikes_'+ln+'_'+str(handle_name)+'.data','r+')
     else:
         l_file = open('/home/schrader/Documents/microsaccades/data/'+str(sim_title)+'network/'+str(sim_nr)+'/spikes_'+ln+'_'+str(handle_name)+'.data','r+')
     LIDs = nest.GetNodes(lr)
+    LIDs2 = nest.GetNodes(lr2)
+    LIDs3 = nest.GetNodes(lr3)
     deltaID = 0
     #print '---NEW-FILE---'
     OGIDs.seek(0)
@@ -213,21 +223,29 @@ for ln in layer_names:
         #print np.array(sta)
         #print nid-deltaID
         nest.SetStatus([LIDs[0][nid-deltaID]], {'spike_times': np.array(sta)})
-        lq+=1
+        nest.SetStatus([LIDs2[0][nid-deltaID]], {'spike_times': np.array(sta)})
+        nest.SetStatus([LIDs3[0][nid-deltaID]], {'spike_times': np.array(sta)})
+        lq+=1        
     l_file.close()
     if ln != 'parasols':
         layers+=[lr]
+        layers2+=[lr2]
+        layers3+=[lr3]
         gmc_lr=tp.CreateLayer({'extent' : [extent_x,extent_y], 'center' : [center_x,center_y], 'positions' : gp_pos, 'elements': 'std_iaf_cond_alpha', 'edge_wrap': True})
         gmc_layers+=[gmc_lr]
         olr=tp.CreateLayer({'extent' : [extent_x,extent_y], 'center' : [center_x,center_y], 'positions' : gp_pos, 'elements': 'my_spike_detector', 'edge_wrap': True})
         out_layers+=[olr]
+        gmdet=tp.CreateLayer({'extent' : [extent_x,extent_y], 'center' : [center_x,center_y], 'positions' : gpgm_pos, 'elements': 'std_iaf_cond_alpha', 'edge_wrap': True})
+        gmdet_layers+=[gmdet]
+        gmn=tp.CreateLayer({'extent' : [extent_x,extent_y], 'center' : [center_x,center_y], 'positions' : [[center_x, center_y]], 'elements': 'std_iaf_cond_alpha', 'edge_wrap': True})
+        gmn_layers+=[gmn]
+        out_gmn=tp.CreateLayer({'extent' : [extent_x,extent_y], 'center' : [center_x,center_y], 'positions' : [[center_x, center_y]], 'elements': 'my_spike_detector', 'edge_wrap': True})
+        out_gmn_layers+=[out_gmn]
+        out_gmdet=tp.CreateLayer({'extent' : [extent_x,extent_y], 'center' : [center_x,center_y], 'positions' : gpgm_pos, 'elements': 'my_spike_detector', 'edge_wrap': True})
+        out_gmdet_layers+=[out_gmdet]
     else:
         parasolic = lr
         psd = tp.CreateLayer({'extent' : [extent_x,extent_y], 'center' : [center_x,center_y], 'positions' : gp_pos, 'elements': 'tr8_iaf_cond_alpha', 'edge_wrap': True})
-        gmdet=tp.CreateLayer({'extent' : [extent_x,extent_y], 'center' : [center_x,center_y], 'positions' : gpgm_pos, 'elements': 'std_iaf_cond_alpha', 'edge_wrap': True})
-        gmn=tp.CreateLayer({'extent' : [extent_x,extent_y], 'center' : [center_x,center_y], 'positions' : [[center_x, center_y]], 'elements': 'std_iaf_cond_alpha', 'edge_wrap': True})
-        out_gmn=tp.CreateLayer({'extent' : [extent_x,extent_y], 'center' : [center_x,center_y], 'positions' : [[center_x, center_y]], 'elements': 'my_spike_detector', 'edge_wrap': True})
-        out_gmdet=tp.CreateLayer({'extent' : [extent_x,extent_y], 'center' : [center_x,center_y], 'positions' : gpgm_pos, 'elements': 'my_spike_detector', 'edge_wrap': True})
     #print lr
             
 OGIDs.close()
@@ -236,12 +254,12 @@ OGIDs.close()
 #connections to left/right half of Reichardt detector
 
 parasolic_to_psd_conndict = {'connection_type' : 'convergent', 'synapse_model': 'ex', 'weights': 40., 'mask' : {'rectangular' : {'lower_left' : [-0.2,-0.2], 'upper_right' : [0.2,0.2]}}}
-psd_to_gmdet_conndict = {'connection_type' : 'convergent', 'synapse_model': 'ex', 'weights': 7., 'mask' : {'rectangular' : {'lower_left' : [-5.1,-5.1*0.866], 'upper_right' : [4.9,4.9*0.866]}}}
-gmdet_to_gmc_conndict = {'connection_type' : 'divergent', 'synapse_model': 'inh_400_delay', 'mask' : {'rectangular' : {'lower_left' : [-4.9,-4.9*0.866], 'upper_right' : [5.1,5.1*0.866]}}} #{'lower_left' : [-1.2,-2.4*0.866], 'upper_right' : [1.3,2.6*0.866]}}}
-modet_to_gmc_conndict = {'connection_type' : 'convergent', 'synapse_model': 'ex_50', 'mask' : {'rectangular' : {'lower_left' : [-0.1,-0.1], 'upper_right' : [0.1,0.1]}}}
+modet_to_gmdet_conndict = {'connection_type' : 'convergent', 'synapse_model': 'ex', 'weights': 10., 'mask' : {'rectangular' : {'lower_left' : [-5.1,-5.1*0.866], 'upper_right' : [4.9,4.9*0.866]}}}
+gmdet_to_gmc_conndict = {'connection_type' : 'divergent', 'synapse_model': 'inh_400', 'mask' : {'rectangular' : {'lower_left' : [-4.9,-4.9*0.866], 'upper_right' : [5.1,5.1*0.866]}}} #{'lower_left' : [-1.2,-2.4*0.866], 'upper_right' : [1.3,2.6*0.866]}}}
+modet_to_gmc_conndict = {'connection_type' : 'convergent', 'synapse_model': 'ex_50_delay', 'mask' : {'rectangular' : {'lower_left' : [-0.1,-0.1], 'upper_right' : [0.1,0.1]}}}
 
-psd_to_gmn_conndict = {'connection_type' : 'convergent', 'synapse_model': 'ex', 'weights': 7.}
-gmn_to_gmc_conndict = {'connection_type' : 'divergent', 'synapse_model': 'inh_400_delay'} #{'lower_left' : [-1.2,-2.4*0.866], 'upper_right' : [1.3,2.6*0.866]}}}
+modet_to_gmn_conndict = {'connection_type' : 'convergent', 'synapse_model': 'ex', 'weights': 10.}
+gmn_to_gmc_conndict = {'connection_type' : 'divergent', 'synapse_model': 'inh_400'} #{'lower_left' : [-1.2,-2.4*0.866], 'upper_right' : [1.3,2.6*0.866]}}}
 
 out_conndict = {'connection_type' : 'convergent', 'mask' : {'rectangular' : {'lower_left' : [-0.2,-0.2], 'upper_right' : [0.2,0.2]}}}
 
@@ -249,19 +267,27 @@ out_conndict = {'connection_type' : 'convergent', 'mask' : {'rectangular' : {'lo
 #tp.ConnectLayers(midgets_V_input,midgets,V_input_conndict)
 #tp.ConnectLayers(parasolic_V_input,parasolic,V_input_conndict)
 
-tp.ConnectLayers(parasolic,psd,parasolic_to_psd_conndict)
-tp.ConnectLayers(psd,gmdet,psd_to_gmdet_conndict)
-tp.ConnectLayers(gmdet,out_gmdet,out_conndict)
-tp.ConnectLayers(psd,gmn,psd_to_gmn_conndict)
-tp.ConnectLayers(gmn,out_gmn,out_conndict)
+#tp.ConnectLayers(parasolic,psd,parasolic_to_psd_conndict)
+#tp.ConnectLayers(layers[6],gmdet_layers[5],modet_to_gmdet_conndict)
+#tp.ConnectLayers(gmdet,out_gmdet,out_conndict)
+#tp.ConnectLayers(psd,gmdet,psd_to_gmn_conndict)
+#tp.ConnectLayers(gmn,out_gmn,out_conndict)
+
 
 for i in range(len(layers)):
     tp.ConnectLayers(layers[i],gmc_layers[i],modet_to_gmc_conndict)
-    tp.ConnectLayers(gmdet,gmc_layers[i],gmdet_to_gmc_conndict)
-    tp.ConnectLayers(gmn,gmc_layers[i],gmn_to_gmc_conndict)
+    
+    tp.ConnectLayers(layers2[i],gmdet_layers[i],modet_to_gmdet_conndict)
+    tp.ConnectLayers(gmdet_layers[i],out_gmdet_layers[i],out_conndict)
+
+    tp.ConnectLayers(layers3[i],gmn_layers[i],modet_to_gmn_conndict)
+    tp.ConnectLayers(gmn_layers[i],out_gmn_layers[i],out_conndict)
+    
+    tp.ConnectLayers(gmdet_layers[i],gmc_layers[i],gmdet_to_gmc_conndict)
+    tp.ConnectLayers(gmn_layers[i],gmc_layers[i],gmn_to_gmc_conndict)
+    
     tp.ConnectLayers(gmc_layers[i],out_layers[i],out_conndict)
-
-
+   
 #ctr = tp.FindNearestElement(parasolic,[120.,120.])
 #fig = tp.PlotLayer(parasolic,nodesize=80)
 #tp.PlotTargets(ctr,psd,fig=fig,mask=out_conndict['mask'],src_size=250, tgt_color='red',tgt_size=20)
@@ -291,7 +317,7 @@ nest.Simulate(200)
 
 def save_spikes(layer_name,layer,asl,tl):
     directory = '/home/schrader/Documents/microsaccades/data/'+str(sim_title)+'/network/'+str(sim_nr)
-    sp_file = open(directory+'/'+layer_name+'_'+handle_name+'.data','w+')
+    sp_file = open(directory+'/'+layer_name+'_'+handle_name+'_modet.data','w+')
     n_evs_l=[0]
     times = []
     for n in range(len(layer[0])):
@@ -313,7 +339,7 @@ def save_spikes(layer_name,layer,asl,tl):
 
 def save_spikes_200(layer_name,layer,asl200,tl200):
     directory = '/home/schrader/Documents/microsaccades/data/'+str(sim_title)+'/network/'+str(sim_nr)
-    sp_file = open(directory+'/'+layer_name+'_200_'+handle_name+'_corr.data','w+')
+    sp_file = open(directory+'/'+layer_name+'_200_'+handle_name+'_corr_modet.data','w+')
     n_evs_200_l=[0]
     times=[]
     for n in range(len(layer[0])):
@@ -352,6 +378,7 @@ modet_sum_spikes200 = []
 
 #parasolic
 print '---EVALUATION---'
+'''
 layerIDs = nest.GetNodes(out_gmdet)
 GID_file.write('gmdet_corr \t'+str(layerIDs[0][0])+'\t'+str(layerIDs[0][len(layerIDs[0])-1])+'\n')
 gmdet_sum_spikes,gmdet_times = save_spikes('spikes_gmdet_corr',layerIDs,gmdet_sum_spikes,gmdet_times)
@@ -361,7 +388,7 @@ layerIDs = nest.GetNodes(out_gmn)
 GID_file.write('gmn_corr \t'+str(layerIDs[0][0])+'\t'+str(layerIDs[0][len(layerIDs[0])-1])+'\n')
 gmn_sum_spikes,gmn_times = save_spikes('spikes_gmn_corr',layerIDs,gmn_sum_spikes,gmn_times)
 gmn_sum_spikes200,gmn_times200 = save_spikes_200('spikes_gmn_corr',layerIDs,gmn_sum_spikes200,gmn_times200)
-
+'''
 
 #parasolic rightward motion detectors
 for i in range(len(layers)):
@@ -370,30 +397,52 @@ for i in range(len(layers)):
     modet_times200+=[0]
     modet_sum_spikes200+=[0]
     layerIDs = nest.GetNodes(out_layers[i])
-    GID_file.write(str(layer_names[i+1])+'_corr\t'+str(layerIDs[0][0])+'\t'+str(layerIDs[0][len(layerIDs[0])-1])+'\n') #because of parasolic
-    modet_sum_spikes[i],modet_times[i] = save_spikes('spikes_'+str(layer_names[i+1])+'_corr',layerIDs,modet_sum_spikes[i],modet_times[i])
-    modet_sum_spikes200[i],modet_times200[i] = save_spikes_200('spikes_'+str(layer_names[i+1])+'_corr',layerIDs,modet_sum_spikes200[i],modet_times200[i])
+    GID_file.write(str(layer_names[i+1])+'_corr_modet \t'+str(layerIDs[0][0])+'\t'+str(layerIDs[0][len(layerIDs[0])-1])+'\n') #because of parasolic
+    modet_sum_spikes[i],modet_times[i] = save_spikes('spikes_'+str(layer_names[i+1])+'_corr_modet',layerIDs,modet_sum_spikes[i],modet_times[i])
+    modet_sum_spikes200[i],modet_times200[i] = save_spikes_200('spikes_'+str(layer_names[i+1])+'_corr_modet',layerIDs,modet_sum_spikes200[i],modet_times200[i])
 
+    gmdet_times+=[0]
+    gmdet_sum_spikes+=[0]
+    gmdet_times200+=[0]
+    gmdet_sum_spikes200+=[0]
+    layerIDs = nest.GetNodes(out_gmdet_layers[i])
+    GID_file.write('gmdet_corr_modet \t'+str(layerIDs[0][0])+'\t'+str(layerIDs[0][len(layerIDs[0])-1])+'\n')
+    gmdet_sum_spikes[i],gmdet_times[i] = save_spikes('spikes_gmdet_'+str(layer_names[i+1])+'_corr_modet',layerIDs,gmdet_sum_spikes[i],gmdet_times[i])
+    gmdet_sum_spikes200[i],gmdet_times200[i] = save_spikes_200('spikes_gmdet'+str(layer_names[i+1])+'_corr_modet',layerIDs,gmdet_sum_spikes200[i],gmdet_times200[i])
+
+    gmn_times+=[0]
+    gmn_sum_spikes+=[0]
+    gmn_times200+=[0]
+    gmn_sum_spikes200+=[0]
+    layerIDs = nest.GetNodes(out_gmn_layers[i])
+    GID_file.write('gmn_corr_modet \t'+str(layerIDs[0][0])+'\t'+str(layerIDs[0][len(layerIDs[0])-1])+'\n')
+    gmn_sum_spikes[i],gmn_times[i] = save_spikes('spikes_gmn_'+str(layer_names[i+1])+'_corr_modet',layerIDs,gmn_sum_spikes[i],gmn_times[i])
+    gmn_sum_spikes200[i],gmn_times200[i] = save_spikes_200('spikes_gmn'+str(layer_names[i+1])+'_corr_modet',layerIDs,gmn_sum_spikes200[i],gmn_times200[i])
+        
 GID_file.close()
 
 all_spikes = sum(modet_sum_spikes)
 all_spikes200 = sum(modet_sum_spikes200)
+gmdet_spikes = sum(modet_sum_spikes)
+gmdet_spikes200 = sum(modet_sum_spikes200)
+gmn_spikes = sum(modet_sum_spikes)
+gmn_spikes200 = sum(modet_sum_spikes200)
 print 'SUM:'
 print all_spikes
 
-ps_file = open('/home/schrader/Documents/microsaccades/data/'+str(sim_title)+'/network/'+str(sim_nr)+'/p_corr_max_spikes.txt','a+')
-ps_file.write(str(handle_name)+'\t'+str(exp_nr)+'\t'+str(cond_nr)+'\t'+str(gmn_sum_spikes)+'\t'+str(gmdet_sum_spikes)+'\t'+str(all_spikes)+'\t'+str(modet_sum_spikes[0])+'\t'+str(modet_sum_spikes[1])+'\t'+str(modet_sum_spikes[2])+'\t'+str(modet_sum_spikes[3])+'\t'+str(modet_sum_spikes[4])+'\t'+str(modet_sum_spikes[5])+'\n')
+ps_file = open('/home/schrader/Documents/microsaccades/data/'+str(sim_title)+'/network/'+str(sim_nr)+'/p_corr_max_spikes_modet.txt','a+')
+ps_file.write(str(handle_name)+'\t'+str(exp_nr)+'\t'+str(cond_nr)+'\t'+str(gmn_spikes)+'\t'+str(gmdet_spikes)+'\t'+str(all_spikes)+'\t'+str(modet_sum_spikes[0])+'\t'+str(modet_sum_spikes[1])+'\t'+str(modet_sum_spikes[2])+'\t'+str(modet_sum_spikes[3])+'\t'+str(modet_sum_spikes[4])+'\t'+str(modet_sum_spikes[5])+'\n')
 ps_file.close()
 
-ps_file = open('/home/schrader/Documents/microsaccades/data/'+str(sim_title)+'/network/'+str(sim_nr)+'/p_corr_spike_times.txt','a+')
+ps_file = open('/home/schrader/Documents/microsaccades/data/'+str(sim_title)+'/network/'+str(sim_nr)+'/p_corr_spike_times_modet.txt','a+')
 ps_file.write(str(handle_name)+'\t'+str(exp_nr)+'\t'+str(cond_nr)+'\n'+str(modet_times[0])+'\n'+str(modet_times[1])+'\n'+str(modet_times[2])+'\n'+str(modet_times[3])+'\n'+str(modet_times[4])+'\n'+str(modet_times[5])+'\n')
 ps_file.close()
 
-ps200_file = open('/home/schrader/Documents/microsaccades/data/'+str(sim_title)+'/network/'+str(sim_nr)+'/p_corr_max_spikes_200.txt','a+')
-ps200_file.write(str(handle_name)+'\t'+str(exp_nr)+'\t'+str(cond_nr)+'\t'+str(gmn_sum_spikes200)+'\t'+str(gmdet_sum_spikes200)+'\t'+str(all_spikes200)+'\t'+str(modet_sum_spikes200[0])+'\t'+str(modet_sum_spikes200[1])+'\t'+str(modet_sum_spikes200[2])+'\t'+str(modet_sum_spikes200[3])+'\t'+str(modet_sum_spikes200[4])+'\t'+str(modet_sum_spikes200[5])+'\n')
+ps200_file = open('/home/schrader/Documents/microsaccades/data/'+str(sim_title)+'/network/'+str(sim_nr)+'/p_corr_max_spikes_modet_200.txt','a+')
+ps200_file.write(str(handle_name)+'\t'+str(exp_nr)+'\t'+str(cond_nr)+'\t'+str(gmn_spikes200)+'\t'+str(gmdet_spikes200)+'\t'+str(all_spikes200)+'\t'+str(modet_sum_spikes200[0])+'\t'+str(modet_sum_spikes200[1])+'\t'+str(modet_sum_spikes200[2])+'\t'+str(modet_sum_spikes200[3])+'\t'+str(modet_sum_spikes200[4])+'\t'+str(modet_sum_spikes200[5])+'\n')
 ps200_file.close()
 
-ps200_file = open('/home/schrader/Documents/microsaccades/data/'+str(sim_title)+'/network/'+str(sim_nr)+'/p_corr_spike_times_200.txt','a+')
+ps200_file = open('/home/schrader/Documents/microsaccades/data/'+str(sim_title)+'/network/'+str(sim_nr)+'/p_corr_spike_times_modet_200.txt','a+')
 ps200_file.write(str(handle_name)+'\t'+str(exp_nr)+'\t'+str(cond_nr)+'\n'+str(modet_times200[0])+'\n'+str(modet_times200[1])+'\n'+str(modet_times200[2])+'\n'+str(modet_times200[3])+'\n'+str(modet_times200[4])+'\n'+str(modet_times200[5])+'\n')
 ps200_file.close()
 
@@ -405,12 +454,16 @@ for lr in out_layers:
     lr = 0
 for lr in gmc_layers:
     lr = 0
+for lr in gmdet_layers:
+    lr = 0
+for lr in gmn_layers:
+    lr = 0
+for lr in out_gmdet_layers:
+    lr = 0
+for lr in out_gmn_layers:
+    lr = 0
 
 parasolic = 0
-gmdet = 0
-out_gmdet = 0
-gmn = 0
-out_gmn = 0
 psd = 0
 
 sys.exit()

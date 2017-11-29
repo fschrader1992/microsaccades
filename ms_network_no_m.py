@@ -45,7 +45,7 @@ extent = 121.
 delay = 30. # speed of point in poletti 2010 -> maybe increase a bit for more reacton later on
 
 t_start = 0
-t_end = 400 #1000
+t_end = 500 #1000
 
 weight = 40.
 weight_std = 1.5
