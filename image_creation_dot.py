@@ -7,8 +7,8 @@ import os
 
 #---------------------------------------------------------------------------------------IMAGE-CREATION
 
-image_size = 30 #280
-image_height = 120
+image_size = 280 #30 #280
+image_height = 280 #120
 radius = 4. #dot size of 4arcmin -> 8px
 rect_size = 110. #size of inner radius 
 vel = 0.06 #velocity is 30 arcmin/s -> 60px/1000ms
@@ -30,17 +30,17 @@ file_location = "/home/schrader/Documents/microsaccades/video/img_input/"+str(su
 #    file_location += "/"+str(angle)+"_8_pi_arc"
 #save the different conditions
 
-film_length = 400 #1000 #int(framerate)*(stripe_width+gap)
+film_length = 1000 #int(framerate)*(stripe_width+gap)
 
 #get normal 2d distribution
 mean = [0, 0]
 cov = [[1, 0], [0, 1]]
 tl_x, tl_y = sigma*np.random.multivariate_normal(mean, cov, film_length).T
 
-d_data = open(str(file_location)+'/displacement.data','w+')
+d_data = open(file_location+'/displacement.data','w+')
 np.save(d_data, (tl_x, tl_y))
 d_data.close()
-pos = (5.,image_size/2.-0.5)
+pos = (image_height/2.-0.5, image_size/2.-0.5)
 center = (image_height/2.-0.5,image_size/2.-0.5) #for rectangle
 
 #loop through the 
@@ -87,13 +87,14 @@ for f in range(film_length):
     plt.close()
     '''
     fig = plt.figure()
-    fig.set_size_inches(0.25,1)
+    #fig.set_size_inches(0.25,1)
+    fig.set_size_inches(2,2)
     ax = plt.Axes(fig, [0., 0., 1., 1.])
     ax.set_axis_off()
     fig.add_axes(ax)
     ax.imshow(canvas, cmap='gray')
     
-    plt.savefig(file_location + "/first"+str(f+1).zfill(3)+".png",  dpi = 120)
+    plt.savefig(file_location + "/first"+str(f+1).zfill(3)+".png",  dpi = 140) #120)
     plt.close()
     
     img = cv2.imread(file_location + "/first"+str(f+1).zfill(3)+".png",0)
@@ -113,12 +114,13 @@ for f in range(film_length):
     '''
     
     fig = plt.figure()
-    fig.set_size_inches(0.25,1)
+    fig.set_size_inches(2,2)
+    #fig.set_size_inches(0.25,1)
     ax = plt.Axes(fig, [0., 0., 1., 1.])
     ax.set_axis_off()
     fig.add_axes(ax)
     ax.imshow(blur, cmap='gray')
     
-    plt.savefig(file_location + "/second"+str(f+1).zfill(3)+".png",  dpi = 120)
-    #plt.savefig(file_location + "/second"+str(f+1).zfill(3)+".png",  dpi = 140)
+    #plt.savefig(file_location + "/second"+str(f+1).zfill(3)+".png",  dpi = 120)
+    plt.savefig(file_location + "/second"+str(f+1).zfill(3)+".png",  dpi = 140)
     plt.close()
