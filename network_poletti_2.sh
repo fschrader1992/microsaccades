@@ -13,7 +13,7 @@ do
     fi
 
     date
-    python ms_network.py poletti2010/exp2/cond3/ ${i} ${i} exp2_cond3_${i} 241. 241. 2 3
+    python ms_network_rest.py poletti2010/exp2/cond3/ ${i} ${i} exp2_cond3_${i} 241. 241. 2 3
     python ms_network.py poletti2010/exp1/cond1_light/ ${i} ${i} exp1_cond1_light_${i} 241. 241. 1 1_light
     date
     echo ${i}: seven files processed

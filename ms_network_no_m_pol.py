@@ -42,18 +42,16 @@ def set_I_e_random(layer):
 #----------------------------------------------------------------------------INPUT-RATES-FROM-MS_INPUT
 
 extent = 121.
-delay = 30. #15. #30. # speed of point in poletti 2010 -> maybe increase a bit for more reacton later on
+delay = 30. # speed of point in poletti 2010 -> maybe increase a bit for more reacton later on
 
 t_start = 0
-t_end = 315 #1000
+t_end = 1000
 
 weight = 40.
 weight_std = 1.5
 #I_E = 410.
 
-mdw=4.0
-
-if len(sys.argv)==10:
+if len(sys.argv)==9:
     sim_title = sys.argv[1]
     sim_title_2 = sys.argv[2]
     sim_nr = sys.argv[3]
@@ -88,7 +86,7 @@ print weight,delay
 
 #here needs to be a part that transfers potentials into poisson rates
 #m_file = open('data/midget_values.data','r+')
-m_file = open('data/'+str(sim_title)+'/'+str(sim_nr)+'/midget_rates_'+str(handle_name)+'_on.data','r+')
+m_file = open('data/'+str(sim_title)+'/'+str(sim_nr)+'/midget_rates_'+str(handle_name)+'_on.data','r+') 
 m_data = np.load(m_file)   
 m_file.close()
 
@@ -107,7 +105,7 @@ parasolic_rates=poissonRateParasols(p_data)
 #for i in range(len(midget_rates)):
 #    for j in range(len(midget_rates[0])):
 #        maxs.append(max(midget_rates[i][j][t_start:t_end]))
-mmr = 330000. #400000. #300000.
+mmr = 300000.
 #print maxs
 #print 'midget max: ' + str(max(maxs)) + ' ' + str(mmr)
         
@@ -175,52 +173,13 @@ nest.CopyModel('stdp_synapse','ex') #,{'weight': {'distribution' : 'uniform', 'l
 #cols = 40
 
 #get grid data form previous simulation
-gm_file = open('data/'+str(sim_title)+str(sim_title_2)+'/'+str(sim_nr)+'/m_pos_'+handle_name+'.data','r+')
-#gm_file = open('data/test_vid/m_pos_test_vid.data','r+')
-gm_data = np.load(gm_file)  
-gm_file.close()
-gm_data = gm_data.tolist()
-
-gp_file = open('data/'+str(sim_title)+str(sim_title_2)+'/'+str(sim_nr)+'/p_pos_'+handle_name+'.data','r+')
+gp_file = open('data/'+str(sim_title)+str(sim_title_2)+'/p_pos_'+handle_name+'.data','r+')
 #gp_file = open('data/test_vid/p_pos_test_vid.data','r+')
 gp_data = np.load(gp_file)  
 gp_file.close()
 gp_data = gp_data.tolist()
 
-gm_pos=[]
-#positions for the reichardt detectors, which have to be centered
-gm_r_0_pos=[]
-gm_r_60_pos=[]
-#gm_r_120_pos=[]
 
-#gm_min=(0.,0.)
-#gm_max=(0.,0.)
-
-#mean, stdv, timelength
-m_noise=[[np.random.normal(0,10,t_end) for j in range(len(gm_data[0]))] for i in range(len(gm_data))]
-midget_rates=mmr*midget_rates+m_noise
-
-print 'length:'
-print len(gm_data),len(gm_data[0])
-for i in range(len(gm_data)):
-    for j in range(len(gm_data[0])):
-        mrs+=[midget_rates[i][j]]
-        gm_pos+=[[0.5*gm_data[i][j][0]+0.25,0.5*gm_data[i][j][1]+0.25]]
-        gm_r_0_pos+=[[0.5*gm_data[i][j][0]+0.5,0.5*gm_data[i][j][1]+0.25]]
-        gm_r_60_pos+=[[0.5*gm_data[i][j][0]+0.5,0.5*gm_data[i][j][1]+0.25+0.433]]
-        #gm_r_120_pos+=[[gm_data[i][j][0],gm_data[i][j][1]]+0.25+0.433]
-        '''
-        #currently, this is known in the simulations
-        if gm_data[i][j][0]>gm_max[0]:
-            gm_max=(gm_data[i][j][0],gm_min[1])
-        if gm_data[i][j][1]>gm_max[1]:
-            gm_max=(gm_max[0],gm_data[i][j][1])
-        if gm_data[i][j][0]<gm_min[0]:
-            gm_min=(gm_data[i][j][0],gm_min[1])
-        if gm_data[i][j][1]<gm_min[1]:
-            gm_min=(gm_min[0],gm_data[i][j][1])
-            #print gm_data[i][j]
-        '''
 '''
 #print gm_pos
 print 'minimum midgets'
@@ -251,18 +210,11 @@ for i in range(len(gp_data)):
 
 #midgets_V_input = tp.CreateLayer({'extent' : [extent_x,extent_y], 'center' : [center_x,center_y], 'positions' : gm_pos, 'elements': 'iaf_psc_alpha_mp', 'edge_wrap': True})
 #parasolic_V_input = tp.CreateLayer({'extent' : [extent_x,extent_y], 'center' : [center_x,center_y], 'positions' : gp_pos, 'elements': 'iaf_psc_alpha_mp', 'edge_wrap': True})
-midgets = tp.CreateLayer({'extent' : [extent_x,extent_y], 'center' : [center_x,center_y], 'positions' : gm_pos, 'elements': 'iaf_psc_alpha_mp', 'edge_wrap': True})
 parasolic = tp.CreateLayer({'extent' : [extent_x,extent_y], 'center' : [center_x,center_y], 'positions' : gp_pos, 'elements': 'iaf_psc_alpha_mp', 'edge_wrap': True})
 
 #120 degree commented for the moment since two build a basis
 
 #these are direction dependent
-m_reichardt_0_left = tp.CreateLayer({'extent' : [extent_x,extent_y], 'center' : [center_x,center_y], 'positions' : gm_pos, 'elements': 'iaf_psc_alpha_i', 'edge_wrap': True})
-m_reichardt_0_right = tp.CreateLayer({'extent' : [extent_x,extent_y], 'center' : [center_x,center_y], 'positions' : gm_pos, 'elements': 'iaf_psc_alpha_i', 'edge_wrap': True})
-m_reichardt_60_up = tp.CreateLayer({'extent' : [extent_x,extent_y], 'center' : [center_x,center_y], 'positions' : gm_pos, 'elements': 'iaf_psc_alpha_i', 'edge_wrap': True})
-m_reichardt_60_down = tp.CreateLayer({'extent' : [extent_x,extent_y], 'center' : [center_x,center_y], 'positions' : gm_pos, 'elements': 'iaf_psc_alpha_i', 'edge_wrap': True})
-m_reichardt_120_up = tp.CreateLayer({'extent' : [extent_x,extent_y], 'center' : [center_x,center_y], 'positions' : gm_pos, 'elements': 'iaf_psc_alpha_i', 'edge_wrap': True})
-m_reichardt_120_down = tp.CreateLayer({'extent' : [extent_x,extent_y], 'center' : [center_x,center_y], 'positions' : gm_pos, 'elements': 'iaf_psc_alpha_i', 'edge_wrap': True})
 p_reichardt_0_left = tp.CreateLayer({'extent' : [extent_x,extent_y], 'center' : [center_x,center_y], 'positions' : gp_pos, 'elements': 'iaf_psc_alpha_i', 'edge_wrap': True})
 p_reichardt_0_right = tp.CreateLayer({'extent' : [extent_x,extent_y], 'center' : [center_x,center_y], 'positions' : gp_pos, 'elements': 'iaf_psc_alpha_i', 'edge_wrap': True})
 p_reichardt_60_up = tp.CreateLayer({'extent' : [extent_x,extent_y], 'center' : [center_x,center_y], 'positions' : gp_pos, 'elements': 'iaf_psc_alpha_i', 'edge_wrap': True})
@@ -290,19 +242,9 @@ motion_down = tp.CreateLayer({'extent' : [extent_x,extent_y], 'center' : [center
 #tp.PlotLayer(reichardt_left)
 #plt.show()
 
-out_m = tp.CreateLayer({'extent' : [extent_x,extent_y], 'center' : [center_x,center_y], 'positions' : gm_pos, 'elements': 'my_spike_detector'})
 out_p = tp.CreateLayer({'extent' : [extent_x,extent_y], 'center' : [center_x,center_y], 'positions' : gp_pos, 'elements': 'my_spike_detector'})
 #out_m_multi = tp.CreateLayer({'extent' : [extent_x,extent_y], 'center' : [center_x,center_y], 'positions' : gm_pos, 'elements': 'my_multimeter'})
 #out_p_multi = tp.CreateLayer({'extent' : [extent_x,extent_y], 'center' : [center_x,center_y], 'positions' : gp_pos, 'elements': 'my_multimeter'})
-
-out_m_r_0_left = tp.CreateLayer({'extent' : [extent_x,extent_y], 'center' : [center_x,center_y], 'positions' : gm_pos, 'elements': 'my_spike_detector'})
-out_m_r_0_right = tp.CreateLayer({'extent' : [extent_x,extent_y], 'center' : [center_x,center_y], 'positions' : gm_pos, 'elements': 'my_spike_detector'})
-
-out_m_r_60_down = tp.CreateLayer({'extent' : [extent_x,extent_y], 'center' : [center_x,center_y], 'positions' : gm_pos, 'elements': 'my_spike_detector'})
-out_m_r_60_up = tp.CreateLayer({'extent' : [extent_x,extent_y], 'center' : [center_x,center_y], 'positions' : gm_pos, 'elements': 'my_spike_detector'})
-
-out_m_r_120_down = tp.CreateLayer({'extent' : [extent_x,extent_y], 'center' : [center_x,center_y], 'positions' : gm_pos, 'elements': 'my_spike_detector'})
-out_m_r_120_up = tp.CreateLayer({'extent' : [extent_x,extent_y], 'center' : [center_x,center_y], 'positions' : gm_pos, 'elements': 'my_spike_detector'})
 
 #out_m_r_0 = tp.CreateLayer({'extent' : [extent_x,extent_y], 'center' : [center_x,center_y], 'positions' : gm_r_0_pos, 'elements': 'my_spike_detector'})
 #out_m_r_0_multi = tp.CreateLayer({'extent' : [extent_x,extent_y], 'center' : [center_x,center_y], 'positions' : gm_r_0_pos, 'elements': 'my_multimeter'})
@@ -327,11 +269,6 @@ out_p_r_120_down = tp.CreateLayer({'extent' : [extent_x+4.,extent_y+4.], 'center
 
 #randomization---------------------------------------------------------------------------------------------------------------------
  
-set_I_e_random(m_reichardt_0_left)
-set_I_e_random(m_reichardt_0_right)
-set_I_e_random(m_reichardt_60_up)
-set_I_e_random(m_reichardt_60_down)
-
 set_I_e_random(p_reichardt_0_left)
 set_I_e_random(p_reichardt_0_right)
 set_I_e_random(p_reichardt_60_up)
@@ -343,19 +280,8 @@ set_I_e_random(p_reichardt_120_down)
 #connections to left/right half of Reichardt detector
 V_input_conndict = {'connection_type' : 'convergent', 'synapse_model': 'stdp_synapse', 'mask' : {'rectangular' : {'lower_left' : [-0.1,-0.1], 'upper_right' : [0.1,0.1]}}}
 
-#m_r_0_left_conndict = {'connection_type' : 'convergent', 'synapse_model': 'ex', 'weights': {'uniform': {'min': weight-weight_std, 'max': weight+weight_std}}, 'mask' : {'rectangular' : {'lower_left' : [-0.6,-0.1], 'upper_right' : [0.1,0.1]}}, 'delays' : {'linear' : {'c' : .1, 'a' : delay}}}
-#m_r_0_right_conndict = {'connection_type' : 'convergent', 'synapse_model': 'ex', 'weights': {'uniform': {'min': weight-weight_std, 'max': weight+weight_std}}, 'mask' : {'rectangular' : {'lower_left' : [-0.1,-0.1], 'upper_right' : [0.6,0.1]}}, 'delays' : {'linear' : {'c' : .1, 'a' : delay}}}
-m_r_0_left_conndict = {'connection_type' : 'convergent', 'synapse_model': 'ex', 'weights': {'uniform': {'min': weight-weight_std, 'max': weight+weight_std}}, 'mask' : {'rectangular' : {'lower_left' : [-(0.25*mdw+0.1),-0.1], 'upper_right' : [0.1,0.1]}}, 'delays' : {'linear' : {'c' : .1, 'a' : delay}}}
-m_r_0_right_conndict = {'connection_type' : 'convergent', 'synapse_model': 'ex', 'weights': {'uniform': {'min': weight-weight_std, 'max': weight+weight_std}}, 'mask' : {'rectangular' : {'lower_left' : [-0.1,-0.1], 'upper_right' : [(0.25*mdw+0.1),0.1]}}, 'delays' : {'linear' : {'c' : .1, 'a' : delay}}}
-m_r_60_up_conndict = {'connection_type' : 'convergent', 'synapse_model': 'ex', 'weights': {'uniform': {'min': weight-weight_std, 'max': weight+weight_std}}, 'mask' : {'rectangular' : {'lower_left' : [-0.25,-0.25], 'upper_right' : [0.25,0.25]}, 'anchor' : [0.125,0.2165]}, 'delays' : {'linear' : {'c' : .1, 'a' : delay}}}
-m_r_60_down_conndict = {'connection_type' : 'convergent', 'synapse_model': 'ex', 'weights': {'uniform': {'min': weight-weight_std, 'max': weight+weight_std}}, 'mask' : {'rectangular' : {'lower_left' : [-0.25,-0.25], 'upper_right' : [0.25,0.25]}, 'anchor' : [-0.125,-0.2165]}, 'weights' : weight, 'delays' : {'linear' : {'c' : .1, 'a' : delay}}}
-m_r_120_up_conndict = {'connection_type' : 'convergent', 'synapse_model': 'ex', 'weights': {'uniform': {'min': weight-weight_std, 'max': weight+weight_std}}, 'mask' : {'rectangular' : {'lower_left' : [-0.25,-0.25], 'upper_right' : [0.25,0.25]}, 'anchor' : [-0.125,0.2165]}, 'delays' : {'linear' : {'c' : .1, 'a' : delay}}}
-m_r_120_down_conndict = {'connection_type' : 'convergent', 'synapse_model': 'ex', 'weights': {'uniform': {'min': weight-weight_std, 'max': weight+weight_std}}, 'mask' : {'rectangular' : {'lower_left' : [-0.25,-0.25], 'upper_right' : [0.25,-0.25]}, 'anchor' : [0.125,-0.2165]}, 'weights' : weight, 'delays' : {'linear' : {'c' : .1, 'a' : delay}}}
-
-#p_r_0_left_conndict = {'connection_type' : 'convergent', 'synapse_model': 'ex', 'weights': {'uniform': {'min': weight-weight_std, 'max': weight+weight_std}}, 'mask' : {'rectangular' : {'lower_left' : [-2.1,-0.1], 'upper_right' : [0.1,0.1]}}, 'delays' : {'linear' : {'c' : .1, 'a' : delay}}}
-#p_r_0_right_conndict = {'connection_type' : 'convergent', 'synapse_model': 'ex', 'weights': {'uniform': {'min': weight-weight_std, 'max': weight+weight_std}}, 'mask' : {'rectangular' : {'lower_left' : [-0.1,-0.1], 'upper_right' : [2.1,0.1]}}, 'delays' : {'linear' : {'c' : .1, 'a' : delay}}}
-p_r_0_left_conndict = {'connection_type' : 'convergent', 'synapse_model': 'ex', 'weights': weight, 'mask' : {'rectangular' : {'lower_left' : [-(mdw+0.1),-0.1], 'upper_right' : [0.1,0.1]}}, 'delays' : {'linear' : {'c' : .1, 'a' : delay}}}
-p_r_0_right_conndict = {'connection_type' : 'convergent', 'synapse_model': 'ex', 'weights': weight, 'mask' : {'rectangular' : {'lower_left' : [-0.1,-0.1], 'upper_right' : [(mdw+0.1),0.1]}}, 'delays' : {'linear' : {'c' : .1, 'a' : delay}}}
+p_r_0_left_conndict = {'connection_type' : 'convergent', 'synapse_model': 'ex', 'weights': {'uniform': {'min': weight-weight_std, 'max': weight+weight_std}}, 'mask' : {'rectangular' : {'lower_left' : [-2.1,-0.1], 'upper_right' : [0.1,0.1]}}, 'delays' : {'linear' : {'c' : .1, 'a' : delay}}}
+p_r_0_right_conndict = {'connection_type' : 'convergent', 'synapse_model': 'ex', 'weights': {'uniform': {'min': weight-weight_std, 'max': weight+weight_std}}, 'mask' : {'rectangular' : {'lower_left' : [-0.1,-0.1], 'upper_right' : [2.1,0.1]}}, 'delays' : {'linear' : {'c' : .1, 'a' : delay}}}
 p_r_60_up_conndict = {'connection_type' : 'convergent', 'synapse_model': 'ex', 'weights': {'uniform': {'min': weight-weight_std, 'max': weight+weight_std}}, 'mask' : {'rectangular' : {'lower_left' : [-1.,-1.], 'upper_right' : [1.,1.]}, 'anchor' : [0.5,0.866]}, 'delays' : {'linear' : {'c' : .1, 'a' : delay}}}
 p_r_60_down_conndict = {'connection_type' : 'convergent', 'synapse_model': 'ex', 'weights': {'uniform': {'min': weight-weight_std, 'max': weight+weight_std}}, 'mask' : {'rectangular' : {'lower_left' : [-1.,-1.], 'upper_right' : [1.,1.]}, 'anchor' : [-0.5,-0.866]}, 'delays' : {'linear' : {'c' : .1, 'a' : delay}}}
 p_r_120_up_conndict = {'connection_type' : 'convergent', 'synapse_model': 'ex', 'weights': {'uniform': {'min': weight-weight_std, 'max': weight+weight_std}}, 'mask' : {'rectangular' : {'lower_left' : [-1.,-1.], 'upper_right' : [1.,1.]}, 'anchor' : [-0.5,0.866]}, 'delays' : {'linear' : {'c' : .1, 'a' : delay}}}
@@ -390,13 +316,6 @@ out_conndict = {'connection_type' : 'convergent', 'mask' : {'rectangular' : {'lo
 #tp.ConnectLayers(midgets_V_input,midgets,V_input_conndict)
 #tp.ConnectLayers(parasolic_V_input,parasolic,V_input_conndict)
 
-tp.ConnectLayers(midgets,m_reichardt_0_right,m_r_0_right_conndict)
-tp.ConnectLayers(midgets,m_reichardt_0_left,m_r_0_left_conndict)
-tp.ConnectLayers(midgets,m_reichardt_60_up,m_r_60_up_conndict)
-tp.ConnectLayers(midgets,m_reichardt_60_down,m_r_60_down_conndict)
-tp.ConnectLayers(midgets,m_reichardt_120_up,m_r_60_up_conndict)
-tp.ConnectLayers(midgets,m_reichardt_120_down,m_r_60_down_conndict)
-
 tp.ConnectLayers(parasolic,p_reichardt_0_right,p_r_0_right_conndict)
 tp.ConnectLayers(parasolic,p_reichardt_0_left,p_r_0_left_conndict)
 tp.ConnectLayers(parasolic,p_reichardt_60_up,p_r_60_up_conndict)
@@ -414,22 +333,15 @@ tp.ConnectLayers(parasolic,p_reichardt_120_down,p_r_120_down_conndict)
 #tp.ConnectLayers(p_reichardt_60_up,p_reichardt_60,p_r_60_up_r_60_conndict)
 #tp.ConnectLayers(p_reichardt_60_down,p_reichardt_60,p_r_60_down_r_60_conndict)
 
-tp.ConnectLayers(midgets,out_m,out_conndict)
 tp.ConnectLayers(parasolic,out_p,out_conndict)
 #tp.ConnectLayers(midgets,out_m_multi,out_conndict)
 #tp.ConnectLayers(parasolic,out_p_multi,out_conndict)
 
-tp.ConnectLayers(m_reichardt_0_left,out_m_r_0_left,out_conndict)
-tp.ConnectLayers(m_reichardt_0_right,out_m_r_0_right,out_conndict)
 tp.ConnectLayers(p_reichardt_0_left,out_p_r_0_left,out_conndict)
 tp.ConnectLayers(p_reichardt_0_right,out_p_r_0_right,out_conndict)
 
-tp.ConnectLayers(m_reichardt_60_up,out_m_r_60_up,out_conndict)
-tp.ConnectLayers(m_reichardt_60_down,out_m_r_60_down,out_conndict)
 tp.ConnectLayers(p_reichardt_60_up,out_p_r_60_up,out_conndict)
 tp.ConnectLayers(p_reichardt_60_down,out_p_r_60_down,out_conndict)
-tp.ConnectLayers(m_reichardt_120_up,out_m_r_120_up,out_conndict)
-tp.ConnectLayers(m_reichardt_120_down,out_m_r_120_down,out_conndict)
 tp.ConnectLayers(p_reichardt_120_up,out_p_r_120_up,out_conndict)
 tp.ConnectLayers(p_reichardt_120_down,out_p_r_120_down,out_conndict)
 
@@ -459,7 +371,6 @@ tp.ConnectLayers(p_reichardt_120_down,out_p_r_120_down,out_conndict)
 #---------------------------------------------------------------------------------------------------------------------SIMULATION
 
 #for updates
-MIDs = nest.GetNodes(midgets)
 PIDs = nest.GetNodes(parasolic)
 SIE = 374.7
 STDI = 0.45
@@ -467,17 +378,6 @@ STDI = 0.45
 for f in range(t_start,t_end):#frames):
     print f
     #reset rates
-    for n in range(len(MIDs[0])):
-        qr = mrs[n][f]
-        #spontaneous firing rate
-        '''
-        if qr < 375.:
-            qr = SIE+np.random.normal(0,STDI,1)[0]
-        if f<5:
-            qr = 374.+float(np.random.normal(0,1.7,1)[0])
-        '''
-        nest.SetStatus([MIDs[0][n]], {'I_e': qr})
-    '''
     for n in range(len(PIDs[0])):
         qr = prs[n][f]
         #spontaneous firing rate
@@ -486,7 +386,6 @@ for f in range(t_start,t_end):#frames):
         if f<5:
             qr = 374.+np.random.normal(0,1.7,1)[0]
         nest.SetStatus([PIDs[0][n]], {'I_e': qr})
-    '''
     #run simulation
     nest.Simulate(1)
   
@@ -505,25 +404,15 @@ max_evs_list = []
 max_evs_list_200 = []
 all_spikes = 0
 all_spikes_200 = 0
-m_all_spikes = 0
 p_all_spikes = 0
-m_all_spikes_200 = 0
 p_all_spikes_200 = 0
-m_all_times=[]
 p_all_times=[]
-m_left_times=[]
-m_right_times=[]
 p_left_times=[]
 p_right_times=[]
-m_ud_times=[]
 p_ud_times=[]
-m_all_times_200=[]
 p_all_times_200=[]
-m_left_times_200=[]
-m_right_times_200=[]
 p_left_times_200=[]
 p_right_times_200=[]
-m_ud_times_200=[]
 p_ud_times_200=[]
 
 def save_spikes(layer_name,layer,mel,asl,tl):
@@ -575,48 +464,11 @@ def save_spikes_200(layer_name,layer,mel200,asl200,tl200):
 
 GID_file = open('/home/schrader/Documents/microsaccades/data/'+str(sim_title)+'/network/'+str(sim_nr)+'/GID_info.txt','w+')
 
-#midget
-layerIDs = nest.GetNodes(out_m)
-GID_file.write('midgets \t'+str(layerIDs[0][0])+'\t'+str(layerIDs[0][len(layerIDs[0])-1])+'\n')
-save_spikes('spikes_midgets',layerIDs,max_evs_list,all_spikes,m_all_times)
-save_spikes_200('spikes_midgets',layerIDs,max_evs_list_200,all_spikes_200,m_all_times_200)
 #parasolic
 layerIDs = nest.GetNodes(out_p)
 GID_file.write('parasols \t'+str(layerIDs[0][0])+'\t'+str(layerIDs[0][len(layerIDs[0])-1])+'\n')
 save_spikes('spikes_parasols',layerIDs,max_evs_list,all_spikes,p_all_times)
 save_spikes_200('spikes_parasols',layerIDs,max_evs_list_200,all_spikes_200,p_all_times_200)
-
-#midget rightward motion detectors
-layerIDs = nest.GetNodes(out_m_r_0_left)
-GID_file.write('m_0_left \t'+str(layerIDs[0][0])+'\t'+str(layerIDs[0][len(layerIDs[0])-1])+'\n')
-save_spikes('spikes_m_0_left',layerIDs,max_evs_list,m_all_spikes,m_left_times)
-save_spikes_200('spikes_m_0_left',layerIDs,max_evs_list_200,m_all_spikes_200,m_left_times_200)
-#midget leftward motion detectors
-layerIDs = nest.GetNodes(out_m_r_0_right)
-GID_file.write('m_0_right \t'+str(layerIDs[0][0])+'\t'+str(layerIDs[0][len(layerIDs[0])-1])+'\n')
-save_spikes('spikes_m_0_right',layerIDs,max_evs_list,m_all_spikes,m_right_times)
-save_spikes_200('spikes_m_0_right',layerIDs,max_evs_list_200,m_all_spikes_200,m_right_times_200)
-#midget downward motion detectors 60
-layerIDs = nest.GetNodes(out_m_r_60_up)
-GID_file.write('m_60_up \t'+str(layerIDs[0][0])+'\t'+str(layerIDs[0][len(layerIDs[0])-1])+'\n')
-save_spikes('spikes_m_60_up',layerIDs,max_evs_list,m_all_spikes,m_ud_times)
-save_spikes_200('spikes_m_60_up',layerIDs,max_evs_list_200,m_all_spikes_200,m_ud_times_200)
-#midget upward motion detectors 60
-layerIDs = nest.GetNodes(out_m_r_60_down)
-GID_file.write('m_60_down \t'+str(layerIDs[0][0])+'\t'+str(layerIDs[0][len(layerIDs[0])-1])+'\n')
-save_spikes('spikes_m_60_down',layerIDs,max_evs_list,m_all_spikes,m_ud_times)
-save_spikes_200('spikes_m_60_down',layerIDs,max_evs_list_200,m_all_spikes_200,m_ud_times_200)
-#midget downward motion detectors 120
-layerIDs = nest.GetNodes(out_m_r_120_up)
-GID_file.write('m_120_up \t'+str(layerIDs[0][0])+'\t'+str(layerIDs[0][len(layerIDs[0])-1])+'\n')
-save_spikes('spikes_m_120_up',layerIDs,max_evs_list,m_all_spikes,m_ud_times)
-save_spikes_200('spikes_m_120_up',layerIDs,max_evs_list_200,m_all_spikes_200,m_ud_times_200)
-#midget upward motion detectors 120
-layerIDs = nest.GetNodes(out_m_r_120_down)
-GID_file.write('m_120_down \t'+str(layerIDs[0][0])+'\t'+str(layerIDs[0][len(layerIDs[0])-1])+'\n')
-save_spikes('spikes_m_120_down',layerIDs,max_evs_list,m_all_spikes,m_ud_times)
-save_spikes_200('spikes_m_120_down',layerIDs,max_evs_list_200,m_all_spikes_200,m_ud_times_200)
-
 
 #parasolic rightward motion detectors
 layerIDs = nest.GetNodes(out_p_r_0_left)
@@ -653,19 +505,10 @@ GID_file.close()
 #print max_evs_list
 #print max_evs_list_200
 
-ms_file = open('/home/schrader/Documents/microsaccades/data/'+str(sim_title)+'/network/'+str(sim_nr)+'/m_max_spikes.txt','a+')
-ms_file.write(str(handle_name)+'\t'+str(exp_nr)+'\t'+str(cond_nr)+'\t'+str(max_evs_list[0])+'\t'+str(max_evs_list[2])+'\t'+str(max_evs_list[3])+'\t'+str(max_evs_list[4])+'\t'+str(max_evs_list[5])+'\t'+str(max_evs_list[6])+'\t'+str(max_evs_list[7])+'\t'+str(m_all_spikes)+'\n')
-ms_file.close()
 ps_file = open('/home/schrader/Documents/microsaccades/data/'+str(sim_title)+'/network/'+str(sim_nr)+'/p_max_spikes.txt','a+')
-ps_file.write(str(handle_name)+'\t'+str(exp_nr)+'\t'+str(cond_nr)+'\t'+str(max_evs_list[1])+'\t'+str(max_evs_list[8])+'\t'+str(max_evs_list[9])+'\t'+str(max_evs_list[10])+'\t'+str(max_evs_list[11])+'\t'+str(max_evs_list[12])+'\t'+str(max_evs_list[13])+'\t'+str(p_all_spikes)+'\n')
+ps_file.write(str(handle_name)+'\t'+str(exp_nr)+'\t'+str(cond_nr)+'\t'+str(max_evs_list[0])+'\t'+str(max_evs_list[1])+'\t'+str(max_evs_list[2])+'\t'+str(max_evs_list[3])+'\t'+str(max_evs_list[4])+'\t'+str(max_evs_list[5])+'\t'+str(max_evs_list[6])+'\t'+str(p_all_spikes)+'\n')
 ps_file.close()
 
-ms_file = open('/home/schrader/Documents/microsaccades/data/'+str(sim_title)+'/network/'+str(sim_nr)+'/m_spikes_lr.txt','a+')
-ms_file.write(str(handle_name)+'\t'+str(exp_nr)+'\t'+str(cond_nr)+'\t'+str(len(m_left_times))+'\t'+str(len(m_right_times))+'\t'+str(len(m_left_times)+len(m_right_times))+'\t'+'\n')
-ms_file.close()
-ms_file = open('/home/schrader/Documents/microsaccades/data/'+str(sim_title)+'/network/'+str(sim_nr)+'/m_spike_times_lr.txt','a+')
-ms_file.write(str(handle_name)+'\t'+str(exp_nr)+'\t'+str(cond_nr)+'\t'+str(m_left_times)+'\t'+str(m_right_times)+'\n')
-ms_file.close()
 ps_file = open('/home/schrader/Documents/microsaccades/data/'+str(sim_title)+'/network/'+str(sim_nr)+'/p_spikes_lr.txt','a+')
 ps_file.write(str(handle_name)+'\t'+str(exp_nr)+'\t'+str(cond_nr)+'\t'+str(len(p_left_times))+'\t'+str(len(p_right_times))+'\t'+str(len(p_left_times)+len(p_right_times))+'\t'+'\n')
 ps_file.close()
@@ -673,19 +516,11 @@ ps_file = open('/home/schrader/Documents/microsaccades/data/'+str(sim_title)+'/n
 ps_file.write(str(handle_name)+'\t'+str(exp_nr)+'\t'+str(cond_nr)+'\t'+str(p_left_times)+'\t'+str(p_right_times)+'\n')
 ps_file.close()
 
-ms_file_200 = open('/home/schrader/Documents/microsaccades/data/'+str(sim_title)+'/network/'+str(sim_nr)+'/m_max_spikes_200.txt','a+')
-ms_file_200.write(str(handle_name)+'\t'+str(exp_nr)+'\t'+str(cond_nr)+'\t'+str(max_evs_list_200[0])+'\t'+str(max_evs_list_200[2])+'\t'+str(max_evs_list_200[3])+'\t'+str(max_evs_list_200[4])+'\t'+str(max_evs_list_200[5])+'\t'+str(max_evs_list_200[6])+'\t'+str(max_evs_list_200[7])+'\t'+str(m_all_spikes_200)+'\n')
-ms_file_200.close()
+
 ps_file_200 = open('/home/schrader/Documents/microsaccades/data/'+str(sim_title)+'/network/'+str(sim_nr)+'/p_max_spikes_200.txt','a+')
 ps_file_200.write(str(handle_name)+'\t'+str(exp_nr)+'\t'+str(cond_nr)+'\t'+str(max_evs_list_200[1])+'\t'+str(max_evs_list_200[8])+'\t'+str(max_evs_list_200[9])+'\t'+str(max_evs_list_200[10])+'\t'+str(max_evs_list_200[11])+'\t'+str(max_evs_list_200[12])+'\t'+str(max_evs_list_200[13])+'\t'+str(p_all_spikes_200)+'\n')
 ps_file_200.close()
 
-ms_200_file = open('/home/schrader/Documents/microsaccades/data/'+str(sim_title)+'/network/'+str(sim_nr)+'/m_spikes_lr_200.txt','a+')
-ms_200_file.write(str(handle_name)+'\t'+str(exp_nr)+'\t'+str(cond_nr)+'\t'+str(len(m_left_times))+'\t'+str(len(m_right_times))+'\t'+str(len(m_left_times)+len(m_right_times))+'\t'+'\n')
-ms_200_file.close()
-ms_200_file = open('/home/schrader/Documents/microsaccades/data/'+str(sim_title)+'/network/'+str(sim_nr)+'/m_spike_times_lr_200.txt','a+')
-ms_200_file.write(str(handle_name)+'\t'+str(exp_nr)+'\t'+str(cond_nr)+'\t'+str(m_left_times)+'\t'+str(m_right_times)+'\n')
-ms_200_file.close()
 ps_200_file = open('/home/schrader/Documents/microsaccades/data/'+str(sim_title)+'/network/'+str(sim_nr)+'/p_spikes_lr_200.txt','a+')
 ps_200_file.write(str(handle_name)+'\t'+str(exp_nr)+'\t'+str(cond_nr)+'\t'+str(len(p_left_times))+'\t'+str(len(p_right_times))+'\t'+str(len(p_left_times)+len(p_right_times))+'\t'+'\n')
 ps_200_file.close()
@@ -695,14 +530,7 @@ ps_200_file.close()
 
 print 'finished'
 
-midgets = 0
 parasols = 0
-m_reichardt_0_left = 0
-m_reichardt_0_right = 0
-m_reichardt_60_up = 0
-m_reichardt_60_down = 0
-m_reichardt_120_up = 0
-m_reichardt_120_down = 0
 p_reichardt_0_left = 0
 p_reichardt_0_right = 0
 p_reichardt_60_up = 0
@@ -710,14 +538,7 @@ p_reichardt_60_down = 0
 p_reichardt_120_up = 0
 p_reichardt_120_down = 0
 
-out_m = 0
 out_p = 0
-out_m_r_0_left = 0
-out_m_r_0_right = 0
-out_m_r_60_down = 0
-out_m_r_60_up = 0
-out_m_r_120_down = 0
-out_m_r_120_up = 0
 out_p_r_0_left = 0
 out_p_r_0_right = 0
 out_p_r_60_up = 0

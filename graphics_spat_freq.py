@@ -83,21 +83,23 @@ d_file.close()
 
 f, ((ax1, ax2), (ax3, ax4)) = plt.subplots(2, 2, sharex='col', gridspec_kw = {'height_ratios':[4, 1]}, figsize=(6,3.5))
 
-ax1.set_title('Midget Cells')
+ax1.set_title('Midget Cells', fontsize=11)
 ax1.imshow(m1_data[17,32:65], interpolation='nearest', cmap='gist_heat', aspect='auto', extent=[0,1000,0,360])
 #ax1.set_aspect(2)
-ax1.set_ylabel('Relative RF Phase (deg)')
+ax1.set_ylabel('Relative RF Phase [deg]', fontsize=8)
 ax1.set_xlim(0,1000)
 ax1.set_yticks(np.arange(0,361,60))
+ax1.tick_params(labelsize=8)
 
 #cax = fig.add_axes([0.,0.,1.,1.])
 #cax.patch.set_alpha(0)
 #cax.set_frame_on(False)
 
-ax3.plot(disp)
-ax3.set_xlabel('Time in ms')
-ax3.set_ylabel('Gaze direction\n (arcmin)')
+ax3.plot(disp,c='k')
+#ax3.set_xlabel('Time in ms', fontsize=8)
+ax3.set_ylabel('Gaze\n direction\n [arcmin]', fontsize=8)
 ax3.set_yticks(np.arange(-15, 16, 15))
+ax3.tick_params(labelsize=8)
 #for i in range(10,22):
 #    plt.plot(m1_data[10,i])
 #print sum(m3_data[10,100])
@@ -121,18 +123,24 @@ for i in range(8,17):
     #p_data+=[p1_data[4,i]]
     p_data+=[p1_data[5,i]]
 #ax3 = fig.add_subplot(222)
-ax2.set_title('Parasol Cells')
+ax2.set_title('Parasol Cells', fontsize=11)
 ax2.set_xlim(0,1000)
 ax2.imshow(p_data, interpolation='nearest', cmap='gist_heat', aspect='auto', extent=[0,1000,0,360])
 ax2.set_yticks(np.arange(0,361,60))
+ax2.set_yticklabels([])
+ax2.tick_params(labelsize=8)
 #cax = fig.add_axes([0.,0.,1.,1.])
 #cax.patch.set_alpha(0)
 #cax.set_frame_on(False)
 
 #ax4 = fig.add_subplot(224)
-ax4.plot(disp)
-ax4.set_xlabel('Time in ms')
+ax4.plot(disp,c='k')
+#ax4.set_xlabel('Time in ms', fontsize=8)
+ax4.tick_params(labelsize=8)
 ax4.set_yticks(np.arange(-15, 16, 15))
+ax4.set_yticklabels([])
+
+f.text(0.5,0.01, 'Time [ms]', ha='center', fontsize=8)
 
 plt.savefig('img/ana/phase.pgf')
 plt.savefig('img/ana/phase.pdf')
@@ -227,6 +235,7 @@ plt.savefig(out)
 #plt.show()
 
 '''
+
 #FREQUENCY-ANALYSIS------------------------------------------------------------------------------------------------------------
 '''
 #x_val=[1,2,5,10,15,20,30,60]
@@ -410,7 +419,7 @@ m3_file.close()
 '''
 
 
-'''
+
 x_val=[1,2,10,20,30,60]
 m_x=[30,30,30,33,30,31]
 p_x=[7,7,7,8,7,8]
@@ -465,18 +474,21 @@ os.chdir('../..')
     
 #plot output
 
-f, (ax1, ax2) = plt.subplots(2, 1, sharex='col', figsize=(3,5))
+f, (ax1, ax2) = plt.subplots(1, 2, sharey='row', figsize=(5.7,2.7))
 
-ax1.set_title('Midget Cells')
+ax1.set_title('Midget Cells', fontsize=11)
 ax1.plot(x_val,m_first,'k--',label='First Harmonic')
 ax1.plot(x_val,m_first,'kx')
 #ax1.plot(x_val,m_second)
 ax1.set_ylim(1,100)
 ax1.set_xscale('log')
 ax1.set_yscale('log')
+ax1.tick_params(labelsize=8)
+#ax1.set_xlabel('Spatial Frequency In cyc/deg', fontsize=8)
+ax1.set_ylabel('Firing Rate [spikes/s]', fontsize=8)
 #ax1.set_xlabel('spatial frequency (cyc/deg)')
 
-ax2.set_title('Parasol Cells')
+ax2.set_title('Parasol Cells', fontsize=11)
 ax2.plot(x_val,p_first,'k--',label='First Harmonic')
 ax2.plot(x_val,p_first,'kx')
 ax2.plot(x_val,p_second,'--',color='darkgray',label='Second Harmonic')
@@ -484,10 +496,12 @@ ax2.plot(x_val,p_second,'x',color='darkgray')
 ax2.set_ylim(1,100)
 ax2.set_xscale('log')
 ax2.set_yscale('log')
-ax2.set_xlabel('spatial frequency (cyc/deg)')
-ax2.legend(loc='upper center', bbox_to_anchor=(0.5,1.6), fancybox=False, fontsize=8)
+#ax2.set_xlabel('Spatial Frequency In cyc/deg', fontsize=8)
+ax2.tick_params(labelsize=8)
+ax2.legend(loc='lower center', bbox_to_anchor=(-0.75,0.), frameon=False, fancybox=False, fontsize=8)
 
-f.text(0.0,0.5, 'Firing Rate (Spikes/s)', va='center', rotation='vertical')
+#f.text(0.0,0.5, 'Firing Rate In Spikes/s', va='center', rotation='vertical', fontsize=8)
+f.text(0.5,0.01, 'Spatial Frequency [cyc/deg]', ha='center', fontsize=8)
 
 plt.tight_layout()
 
@@ -498,4 +512,4 @@ plt.savefig(out)
 
 plt.show()
 plt.close()
-'''
+

@@ -1,9 +1,7 @@
-python ms_network.py mtesting/mt_v3_c1 30 mt_v3_c1 121. 31. 1 3 30
-
 for i in 1 2 3 4 5 8 10 15 20
 do
     echo Grating ${i}
-    for j in 3 #6 
+    for j in 6 
     do
         echo Grating ${i}, velocity ${j}
         if [ ! -d ./video/img_input/mtesting/mt_v${j}_c${i} ]; then

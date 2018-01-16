@@ -40,18 +40,20 @@ IST = 1000./data[:,2]
 #IST_err = data[:,3]
 
 fig = plt.figure(1)	
-fig.set_size_inches(6,4)
+fig.set_size_inches(5,3)
 ax = fig.add_subplot(111)
-ax.set_xlabel(r'Constant external input current $I_e$ in pA')
-ax.set_ylabel(r'spiking frequency $f_S$ in Hz')
-ax.plot(I_e,IST,'k--',label='spiking frequency') 
-ax.plot(I_e,IST,'kx') 
+ax.set_xlabel(r'Constant External Input Current $I_e$ [pA]', fontsize=8)
+ax.set_ylabel(r'Spiking Frequency $f_S$ [Hz]', fontsize=8)
+#ax.plot(I_e,IST,'k--',label='Spiking Frequency') 
+ax.plot(I_e,STD_I_e,'kx') 
+ax.tick_params(labelsize=8)
 
 #popt, pcov = curve_fit(lin_func, I_e, IST) #, bounds=(0, [3., 2.])
 #ax.plot(I_e, lin_func(I_e, *popt), 'k-', label='fit')
+plt.tight_layout()
 
-plt.savefig('img/mo_det_cal/I_e_response_curve.pdf')
-plt.savefig('img/mo_det_cal/I_e_response_curve.pgf')
+plt.savefig('img/mo_det_cal/I_e_response_curve_small.pdf')
+plt.savefig('img/mo_det_cal/I_e_response_curve_small.pgf')
 out= 'img/'+ str(now.year) + '_' + str(now.month) + '_' + str(now.day) + '/' + str(now.hour) + '_' + str(now.minute) + '_' + str(now.second) + '_I_e_response_curve.pdf'
 plt.savefig(out)
 plt.show()

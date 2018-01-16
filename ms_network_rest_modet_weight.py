@@ -258,7 +258,7 @@ modet_to_gmdet_conndict = {'connection_type' : 'convergent', 'synapse_model': 'e
 gmdet_to_gmc_conndict = {'connection_type' : 'divergent', 'synapse_model': 'inh_400', 'mask' : {'rectangular' : {'lower_left' : [-4.9,-4.9*0.866], 'upper_right' : [5.1,5.1*0.866]}}} #{'lower_left' : [-1.2,-2.4*0.866], 'upper_right' : [1.3,2.6*0.866]}}}
 modet_to_gmc_conndict = {'connection_type' : 'convergent', 'synapse_model': 'ex_50_delay', 'mask' : {'rectangular' : {'lower_left' : [-0.1,-0.1], 'upper_right' : [0.1,0.1]}}}
 
-modet_to_gmn_conndict = {'connection_type' : 'convergent', 'synapse_model': 'ex', 'weights': 10.}
+modet_to_gmn_conndict = {'connection_type' : 'convergent', 'synapse_model': 'ex', 'weights': .2}
 gmn_to_gmc_conndict = {'connection_type' : 'divergent', 'synapse_model': 'inh_400'} #{'lower_left' : [-1.2,-2.4*0.866], 'upper_right' : [1.3,2.6*0.866]}}}
 
 out_conndict = {'connection_type' : 'convergent', 'mask' : {'rectangular' : {'lower_left' : [-0.2,-0.2], 'upper_right' : [0.2,0.2]}}}
@@ -317,7 +317,7 @@ nest.Simulate(200)
 
 def save_spikes(layer_name,layer,asl,tl):
     directory = '/home/schrader/Documents/microsaccades/data/'+str(sim_title)+'/network/'+str(sim_nr)
-    sp_file = open(directory+'/'+layer_name+'_'+handle_name+'_modet.data','w+')
+    sp_file = open(directory+'/'+layer_name+'_'+handle_name+'_modet_weight.data','w+')
     n_evs_l=[0]
     times = []
     for n in range(len(layer[0])):
@@ -339,7 +339,7 @@ def save_spikes(layer_name,layer,asl,tl):
 
 def save_spikes_200(layer_name,layer,asl200,tl200):
     directory = '/home/schrader/Documents/microsaccades/data/'+str(sim_title)+'/network/'+str(sim_nr)
-    sp_file = open(directory+'/'+layer_name+'_200_'+handle_name+'_corr_modet.data','w+')
+    sp_file = open(directory+'/'+layer_name+'_200_'+handle_name+'_corr_modet_weight.data','w+')
     n_evs_200_l=[0]
     times=[]
     for n in range(len(layer[0])):

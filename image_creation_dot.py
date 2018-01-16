@@ -25,7 +25,7 @@ direction = float(angle)*np.pi/8. #dot moving direction in arc (get right veloci
 #for normal distributed microsaccades
 sigma = 0.447
 
-file_location = "/home/schrader/Documents/microsaccades/video/img_input/"+str(suff) #/poletti2010/"+str(suff)
+file_location = "/home/schrader/Documents/microsaccades/video/img_input/poletti2010/"+str(suff)
 #if vel_on==1:
 #    file_location += "/"+str(angle)+"_8_pi_arc"
 #save the different conditions

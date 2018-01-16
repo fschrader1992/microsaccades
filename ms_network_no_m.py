@@ -45,13 +45,13 @@ extent = 121.
 delay = 30. # speed of point in poletti 2010 -> maybe increase a bit for more reacton later on
 
 t_start = 0
-t_end = 500 #1000
+t_end = 200 #315 #1000
 
-weight = 40.
+weight = 40. #40.
 weight_std = 1.5
 #I_E = 410.
 
-if len(sys.argv)==9:
+if len(sys.argv)==11:
     sim_title = sys.argv[1]
     sim_title_2 = sys.argv[2]
     sim_nr = sys.argv[3]
@@ -61,6 +61,8 @@ if len(sys.argv)==9:
     extent_y = float(sys.argv[6])
     exp_nr = sys.argv[7]
     cond_nr = sys.argv[8]
+    mdw = float(sys.argv[9])
+    t_end = int(sys.argv[10])
 else:
     sim_title = sys.argv[1]
     sim_nr = sys.argv[2]
@@ -71,6 +73,8 @@ else:
     exp_nr = sys.argv[6]
     cond_nr = sys.argv[7]
     sim_title_2 = ''
+    mdw = float(sys.argv[8])
+    t_end = int(sys.argv[9])
 
 #delay = float(sys.argv[5])
 vel = 0. #float(sys.argv[6])
@@ -80,6 +84,8 @@ vel = 0. #float(sys.argv[6])
 #center = extent/2.
 center_x = extent_x/2.
 center_y = extent_y/2.
+
+weight = 40.*2./mdw
 
 print weight,delay
 #weight = 0.
@@ -173,7 +179,7 @@ nest.CopyModel('stdp_synapse','ex') #,{'weight': {'distribution' : 'uniform', 'l
 #cols = 40
 
 #get grid data form previous simulation
-gp_file = open('data/'+str(sim_title)+str(sim_title_2)+'/p_pos_'+handle_name+'.data','r+')
+gp_file = open('data/'+str(sim_title)+str(sim_title_2)+'/'+str(sim_nr)+'/p_pos_'+handle_name+'.data','r+')
 #gp_file = open('data/test_vid/p_pos_test_vid.data','r+')
 gp_data = np.load(gp_file)  
 gp_file.close()
@@ -280,12 +286,22 @@ set_I_e_random(p_reichardt_120_down)
 #connections to left/right half of Reichardt detector
 V_input_conndict = {'connection_type' : 'convergent', 'synapse_model': 'stdp_synapse', 'mask' : {'rectangular' : {'lower_left' : [-0.1,-0.1], 'upper_right' : [0.1,0.1]}}}
 
+'''
 p_r_0_left_conndict = {'connection_type' : 'convergent', 'synapse_model': 'ex', 'weights': {'uniform': {'min': weight-weight_std, 'max': weight+weight_std}}, 'mask' : {'rectangular' : {'lower_left' : [-2.1,-0.1], 'upper_right' : [0.1,0.1]}}, 'delays' : {'linear' : {'c' : .1, 'a' : delay}}}
 p_r_0_right_conndict = {'connection_type' : 'convergent', 'synapse_model': 'ex', 'weights': {'uniform': {'min': weight-weight_std, 'max': weight+weight_std}}, 'mask' : {'rectangular' : {'lower_left' : [-0.1,-0.1], 'upper_right' : [2.1,0.1]}}, 'delays' : {'linear' : {'c' : .1, 'a' : delay}}}
 p_r_60_up_conndict = {'connection_type' : 'convergent', 'synapse_model': 'ex', 'weights': {'uniform': {'min': weight-weight_std, 'max': weight+weight_std}}, 'mask' : {'rectangular' : {'lower_left' : [-1.,-1.], 'upper_right' : [1.,1.]}, 'anchor' : [0.5,0.866]}, 'delays' : {'linear' : {'c' : .1, 'a' : delay}}}
 p_r_60_down_conndict = {'connection_type' : 'convergent', 'synapse_model': 'ex', 'weights': {'uniform': {'min': weight-weight_std, 'max': weight+weight_std}}, 'mask' : {'rectangular' : {'lower_left' : [-1.,-1.], 'upper_right' : [1.,1.]}, 'anchor' : [-0.5,-0.866]}, 'delays' : {'linear' : {'c' : .1, 'a' : delay}}}
 p_r_120_up_conndict = {'connection_type' : 'convergent', 'synapse_model': 'ex', 'weights': {'uniform': {'min': weight-weight_std, 'max': weight+weight_std}}, 'mask' : {'rectangular' : {'lower_left' : [-1.,-1.], 'upper_right' : [1.,1.]}, 'anchor' : [-0.5,0.866]}, 'delays' : {'linear' : {'c' : .1, 'a' : delay}}}
 p_r_120_down_conndict = {'connection_type' : 'convergent', 'synapse_model': 'ex', 'weights': {'uniform': {'min': weight-weight_std, 'max': weight+weight_std}}, 'mask' : {'rectangular' : {'lower_left' : [-1.,-1.], 'upper_right' : [1.,1.]}, 'anchor' : [0.5,-0.866]}, 'delays' : {'linear' : {'c' : .1, 'a' : delay}}}
+
+'''
+#no randomization
+p_r_0_left_conndict = {'connection_type' : 'convergent', 'synapse_model': 'ex', 'weights': weight, 'mask' : {'rectangular' : {'lower_left' : [-(mdw+0.1),-0.1], 'upper_right' : [0.1,0.1]}}, 'delays' : {'linear' : {'c' : .1, 'a' : delay}}}
+p_r_0_right_conndict = {'connection_type' : 'convergent', 'synapse_model': 'ex', 'weights': weight, 'mask' : {'rectangular' : {'lower_left' : [-0.1,-0.1], 'upper_right' : [(mdw+0.1),0.1]}}, 'delays' : {'linear' : {'c' : .1, 'a' : delay}}}
+p_r_60_up_conndict = {'connection_type' : 'convergent', 'synapse_model': 'ex', 'weights': weight, 'mask' : {'rectangular' : {'lower_left' : [-1.,-1.], 'upper_right' : [1.,1.]}, 'anchor' : [0.5,0.866]}, 'delays' : {'linear' : {'c' : .1, 'a' : delay}}}
+p_r_60_down_conndict = {'connection_type' : 'convergent', 'synapse_model': 'ex', 'weights': weight, 'mask' : {'rectangular' : {'lower_left' : [-1.,-1.], 'upper_right' : [1.,1.]}, 'anchor' : [-0.5,-0.866]}, 'delays' : {'linear' : {'c' : .1, 'a' : delay}}}
+p_r_120_up_conndict = {'connection_type' : 'convergent', 'synapse_model': 'ex', 'weights': weight, 'mask' : {'rectangular' : {'lower_left' : [-1.,-1.], 'upper_right' : [1.,1.]}, 'anchor' : [-0.5,0.866]}, 'delays' : {'linear' : {'c' : .1, 'a' : delay}}}
+p_r_120_down_conndict = {'connection_type' : 'convergent', 'synapse_model': 'ex', 'weights': weight, 'mask' : {'rectangular' : {'lower_left' : [-1.,-1.], 'upper_right' : [1.,1.]}, 'anchor' : [0.5,-0.866]}, 'delays' : {'linear' : {'c' : .1, 'a' : delay}}}
 
 #connections of left/right half to just motion sensitive Reichardt detector
 #m_r_0_left_r_0_conndict = {'connection_type' : 'convergent','mask' : {'rectangular' : {'lower_left' : [-0.1,-0.1], 'upper_right' : [0.3,0.1]}}, 'weights' : weight } #'synapse_model' : 'ex'}
@@ -374,6 +390,21 @@ tp.ConnectLayers(p_reichardt_120_down,out_p_r_120_down,out_conndict)
 PIDs = nest.GetNodes(parasolic)
 SIE = 374.7
 STDI = 0.45
+'''
+#for f in range(t_start,t_end):#frames):
+#print f
+#reset rates
+fig = plt.figure()
+fig.set_size_inches(1,1)
+ax = plt.Axes(fig, [0., 0., 1., 1.])
+ax.set_axis_off()
+fig.add_axes(ax)
+
+ax.imshow(parasolic_rates[:,:,99], cmap=plt.cm.gray, interpolation='nearest', animated=True)
+#plt.savefig('/home/schrader/Documents/microsaccades/img/animation/jitter/chess_input/'+str(f+1).zfill(3)+'.png',  dpi = 128)
+plt.savefig('/home/schrader/Documents/microsaccades/img/jitter/chess_size'+str(cond_nr)+'.png',  dpi = 128)
+plt.close()
+'''      
 
 for f in range(t_start,t_end):#frames):
     print f
@@ -381,10 +412,10 @@ for f in range(t_start,t_end):#frames):
     for n in range(len(PIDs[0])):
         qr = prs[n][f]
         #spontaneous firing rate
-        if qr < 375.:
-            qr = SIE+np.random.normal(0,STDI,1)[0]
-        if f<5:
-            qr = 374.+np.random.normal(0,1.7,1)[0]
+        #if qr < 375.:
+        #    qr = SIE+np.random.normal(0,STDI,1)[0]
+        #if f<5:
+        #    qr = 374.+np.random.normal(0,1.7,1)[0]
         nest.SetStatus([PIDs[0][n]], {'I_e': qr})
     #run simulation
     nest.Simulate(1)
@@ -439,7 +470,7 @@ def save_spikes(layer_name,layer,mel,asl,tl):
 
 def save_spikes_200(layer_name,layer,mel200,asl200,tl200):
     directory = '/home/schrader/Documents/microsaccades/data/'+str(sim_title)+'/network/'+str(sim_nr)
-    sp_file = open(directory+'/'+layer_name+'_200_'+handle_name+'.data','w+')
+    sp_file = open(directory+'/'+layer_name+'_200_'+handle_name+'_mdw_'+str(mdw)+'.data','w+')
     n_evs_200_l=[0]
     times=[]
     for n in range(len(layer[0])):
@@ -505,25 +536,25 @@ GID_file.close()
 #print max_evs_list
 #print max_evs_list_200
 
-ps_file = open('/home/schrader/Documents/microsaccades/data/'+str(sim_title)+'/network/'+str(sim_nr)+'/p_max_spikes.txt','a+')
+ps_file = open('/home/schrader/Documents/microsaccades/data/'+str(sim_title)+'/network/'+str(sim_nr)+'/p_max_spikes'+'_mdw_'+str(mdw)+'.txt','a+')
 ps_file.write(str(handle_name)+'\t'+str(exp_nr)+'\t'+str(cond_nr)+'\t'+str(max_evs_list[0])+'\t'+str(max_evs_list[1])+'\t'+str(max_evs_list[2])+'\t'+str(max_evs_list[3])+'\t'+str(max_evs_list[4])+'\t'+str(max_evs_list[5])+'\t'+str(max_evs_list[6])+'\t'+str(p_all_spikes)+'\n')
 ps_file.close()
 
-ps_file = open('/home/schrader/Documents/microsaccades/data/'+str(sim_title)+'/network/'+str(sim_nr)+'/p_spikes_lr.txt','a+')
+ps_file = open('/home/schrader/Documents/microsaccades/data/'+str(sim_title)+'/network/'+str(sim_nr)+'/p_spikes_lr'+'_mdw_'+str(mdw)+'.txt','a+')
 ps_file.write(str(handle_name)+'\t'+str(exp_nr)+'\t'+str(cond_nr)+'\t'+str(len(p_left_times))+'\t'+str(len(p_right_times))+'\t'+str(len(p_left_times)+len(p_right_times))+'\t'+'\n')
 ps_file.close()
-ps_file = open('/home/schrader/Documents/microsaccades/data/'+str(sim_title)+'/network/'+str(sim_nr)+'/p_spike_times_lr.txt','a+')
+ps_file = open('/home/schrader/Documents/microsaccades/data/'+str(sim_title)+'/network/'+str(sim_nr)+'/p_spike_times_lr'+'_mdw_'+str(mdw)+'.txt','a+')
 ps_file.write(str(handle_name)+'\t'+str(exp_nr)+'\t'+str(cond_nr)+'\t'+str(p_left_times)+'\t'+str(p_right_times)+'\n')
 ps_file.close()
 
-ps_file_200 = open('/home/schrader/Documents/microsaccades/data/'+str(sim_title)+'/network/'+str(sim_nr)+'/p_max_spikes_200.txt','a+')
-ps_file_200.write(str(handle_name)+'\t'+str(exp_nr)+'\t'+str(cond_nr)+'\t'+str(max_evs_list_200[1])+'\t'+str(max_evs_list_200[8])+'\t'+str(max_evs_list_200[9])+'\t'+str(max_evs_list_200[10])+'\t'+str(max_evs_list_200[11])+'\t'+str(max_evs_list_200[12])+'\t'+str(max_evs_list_200[13])+'\t'+str(p_all_spikes_200)+'\n')
+ps_file_200 = open('/home/schrader/Documents/microsaccades/data/'+str(sim_title)+'/network/'+str(sim_nr)+'/p_max_spikes_200'+'_mdw_'+str(mdw)+'.txt','a+')
+ps_file_200.write(str(handle_name)+'\t'+str(exp_nr)+'\t'+str(cond_nr)+'\t'+str(max_evs_list_200[0])+'\t'+str(max_evs_list_200[1])+'\t'+str(max_evs_list_200[2])+'\t'+str(max_evs_list_200[3])+'\t'+str(max_evs_list_200[4])+'\t'+str(max_evs_list_200[5])+'\t'+str(max_evs_list_200[6])+'\t'+str(p_all_spikes_200)+'\n')
 ps_file_200.close()
 
-ps_200_file = open('/home/schrader/Documents/microsaccades/data/'+str(sim_title)+'/network/'+str(sim_nr)+'/p_spikes_lr_200.txt','a+')
+ps_200_file = open('/home/schrader/Documents/microsaccades/data/'+str(sim_title)+'/network/'+str(sim_nr)+'/p_spikes_lr_200'+'_mdw_'+str(mdw)+'.txt','a+')
 ps_200_file.write(str(handle_name)+'\t'+str(exp_nr)+'\t'+str(cond_nr)+'\t'+str(len(p_left_times))+'\t'+str(len(p_right_times))+'\t'+str(len(p_left_times)+len(p_right_times))+'\t'+'\n')
 ps_200_file.close()
-ps_200_file = open('/home/schrader/Documents/microsaccades/data/'+str(sim_title)+'/network/'+str(sim_nr)+'/p_spike_times_lr_200.txt','a+')
+ps_200_file = open('/home/schrader/Documents/microsaccades/data/'+str(sim_title)+'/network/'+str(sim_nr)+'/p_spike_times_lr_200'+'_mdw_'+str(mdw)+'.txt','a+')
 ps_200_file.write(str(handle_name)+'\t'+str(exp_nr)+'\t'+str(cond_nr)+'\t'+str(p_left_times)+'\t'+str(p_right_times)+'\n')
 ps_200_file.close()
 
